@@ -17,6 +17,7 @@ package ens
 import (
 	"bytes"
 	"compress/zlib"
+	"context"
 	"errors"
 	"io"
 	"math/big"
@@ -180,8 +181,14 @@ func (r *Resolver) InterfaceImplementer(interfaceID [4]byte) (common.Address, er
 	return r.Contract.InterfaceImplementer(nil, nameHash, interfaceID)
 }
 
-// Resolve resolves an ENS name in to an Etheruem address.
-// This will return an error if the name is not found or otherwise 0.
+// Resolve resolves an ENS name in to an Ethereum address. Resolution flows
+// through the ENS UniversalResolver, which means CCIP-Read (ERC-3668) is
+// followed transparently — names backed by offchain or L2 data resolve the
+// same way as fully on-chain names. An input that contains no dot is treated
+// as a literal hex address.
+//
+// This will return an error if the name is not found or otherwise resolves
+// to the zero address.
 func Resolve(backend bind.ContractBackend, input string) (common.Address, error) {
 	if strings.Contains(input, ".") {
 		return resolveName(backend, input)
@@ -205,30 +212,11 @@ func resolveName(backend bind.ContractBackend, input string) (common.Address, er
 	if bytes.Equal(nameHash[:], zeroHash) {
 		return UnknownAddress, errors.New("bad name")
 	}
-	address, err := resolveHash(backend, input)
+	ur, err := NewUniversalResolver(backend)
 	if err != nil {
 		return UnknownAddress, err
 	}
-
-	return address, nil
-}
-
-func resolveHash(backend bind.ContractBackend, domain string) (common.Address, error) {
-	resolver, err := NewResolver(backend, domain)
-	if err != nil {
-		return UnknownAddress, err
-	}
-
-	// Resolve the domain.
-	address, err := resolver.Address()
-	if err != nil {
-		return UnknownAddress, err
-	}
-	if bytes.Equal(address.Bytes(), UnknownAddress.Bytes()) {
-		return UnknownAddress, errors.New("no address")
-	}
-
-	return address, nil
+	return ur.ResolveAddress(context.Background(), input)
 }
 
 // SetText sets the text associated with a name.

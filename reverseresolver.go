@@ -15,6 +15,7 @@
 package ens
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -103,22 +104,23 @@ func Format(backend bind.ContractBackend, address common.Address) string {
 	return result
 }
 
-// ReverseResolve resolves an address in to an ENS name.
-// This will return an error if the name is not found or otherwise 0.
+// ReverseResolve resolves an address in to an ENS name. Resolution flows
+// through the ENS UniversalResolver, so CCIP-Read (ERC-3668) is handled
+// transparently and reverse records stored offchain or on an L2 resolve the
+// same way as fully on-chain reverse records.
+//
+// This will return an error if no primary name is set for the address.
 func ReverseResolve(backend bind.ContractBackend, address common.Address) (string, error) {
-	resolver, err := NewReverseResolverFor(backend, address)
+	ur, err := NewUniversalResolver(backend)
 	if err != nil {
 		return "", err
 	}
-
-	// Resolve the name.
-	name, err := resolver.Name(address)
+	name, _, _, err := ur.Reverse(context.Background(), address.Bytes(), CoinTypeETH)
 	if err != nil {
 		return "", err
 	}
 	if name == "" {
-		err = errors.New("no resolution")
+		return "", errors.New("no resolution")
 	}
-
-	return name, err
+	return name, nil
 }

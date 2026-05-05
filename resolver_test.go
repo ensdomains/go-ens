@@ -54,6 +54,12 @@ func TestResolveBadResolver(t *testing.T) {
 	assert.Equal(t, "no address", err.Error(), "Unexpected error")
 }
 
+// resolvestozero.eth previously routed through a resolver that returned the
+// zero address; if the underlying record changes this assertion will too.
+//
+// ethereum.eth used to return a non-zero address but its records have since
+// been cleared, so the assertion below uses vitalik.eth as a stable target.
+
 func TestResolveTestEnsTest(t *testing.T) {
 	expected := "ed96dd3be847b387217ef9de5b20d8392a6cdf40"
 	actual, err := Resolve(client, "test.enstest.eth")
@@ -68,9 +74,9 @@ func TestResolveResolverEth(t *testing.T) {
 	assert.Equal(t, expected, hex.EncodeToString(actual[:]), "Did not receive expected result")
 }
 
-func TestResolveEthereum(t *testing.T) {
-	expected := "de0b295669a9fd93d5f28d9ec85e40f4cb697bae"
-	actual, err := Resolve(client, "ethereum.eth")
+func TestResolveVitalik(t *testing.T) {
+	expected := "d8da6bf26964af9d7eed9e03e53415d37aa96045"
+	actual, err := Resolve(client, "vitalik.eth")
 	require.Nil(t, err, "Error resolving name")
 	assert.Equal(t, expected, hex.EncodeToString(actual[:]), "Did not receive expected result")
 }

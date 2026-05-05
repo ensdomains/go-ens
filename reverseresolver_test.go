@@ -34,7 +34,9 @@ func TestReverseResolve(t *testing.T) {
 		{
 			name:    "NoResolver",
 			address: common.Address{},
-			err:     "not a resolver",
+			// UniversalResolver returns an empty primary name for the zero
+			// address; ReverseResolve translates that to "no resolution".
+			err: "no resolution",
 		},
 		{
 			name:    "NoReverseRecord",

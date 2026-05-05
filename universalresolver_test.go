@@ -1,0 +1,87 @@
+// Copyright 2026 Weald Technology Trading.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+
+package ens_test
+
+import (
+	"context"
+	"os"
+	"strings"
+	"testing"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/stretchr/testify/require"
+	ens "github.com/wealdtech/go-ens/v3"
+)
+
+// mainnetClient connects to a public Ethereum mainnet RPC. The endpoint can
+// be overridden with GO_ENS_TEST_RPC; without an override the test falls
+// back to a public endpoint so that `go test` works out of the box.
+func mainnetClient(t *testing.T) *ethclient.Client {
+	t.Helper()
+	url := os.Getenv("GO_ENS_TEST_RPC")
+	if url == "" {
+		// Public mainnet RPC. Surfaces revert data via the JSON-RPC `data`
+		// field, which is required for CCIP-Read.
+		url = "https://ethereum.publicnode.com"
+	}
+	client, err := ethclient.Dial(url)
+	require.NoError(t, err, "failed to dial %s", url)
+	return client
+}
+
+// TestUniversalResolverIntegrationName is the canonical ENSv2 readiness
+// check from https://docs.ens.domains/web/ensv2-readiness/. A library that
+// resolves through the UniversalResolver returns the v2 sentinel address;
+// a library that still uses legacy registry-walking returns the v1 sentinel.
+func TestUniversalResolverIntegrationName(t *testing.T) {
+	const (
+		name           = "ur.integration-tests.eth"
+		expectedV2     = "0x2222222222222222222222222222222222222222"
+		legacyV1Marker = "0x1111111111111111111111111111111111111111"
+	)
+	client := mainnetClient(t)
+
+	addr, err := ens.Resolve(client, name)
+	require.NoError(t, err, "Resolve(%s) failed", name)
+
+	got := strings.ToLower(addr.Hex())
+	require.NotEqual(t, strings.ToLower(legacyV1Marker), got,
+		"got the legacy v1 sentinel %s — resolution did not route through the UniversalResolver", legacyV1Marker)
+	require.Equal(t, strings.ToLower(expectedV2), got,
+		"expected ENSv2 sentinel %s, got %s", expectedV2, got)
+}
+
+// TestUniversalResolverCCIPRead exercises the OffchainLookup path: this
+// name resolves only after the client follows an ERC-3668 revert and queries
+// a CCIP-Read gateway.
+func TestUniversalResolverCCIPRead(t *testing.T) {
+	const (
+		name     = "test.offchaindemo.eth"
+		expected = "0x779981590E7Ccc0CFAe8040Ce7151324747cDb97"
+	)
+	client := mainnetClient(t)
+
+	addr, err := ens.Resolve(client, name)
+	require.NoError(t, err, "Resolve(%s) failed", name)
+	require.Equal(t, strings.ToLower(expected), strings.ToLower(addr.Hex()))
+}
+
+// TestUniversalResolverDirectResolve checks the lower-level helper used by
+// Resolve, asserting that calling UniversalResolver.ResolveAddress directly
+// produces the same result as the top-level Resolve entrypoint.
+func TestUniversalResolverDirectResolve(t *testing.T) {
+	client := mainnetClient(t)
+	ur, err := ens.NewUniversalResolver(client)
+	require.NoError(t, err)
+
+	addr, err := ur.ResolveAddress(context.Background(), "ur.integration-tests.eth")
+	require.NoError(t, err)
+	require.Equal(t, common.HexToAddress("0x2222222222222222222222222222222222222222"), addr)
+}
