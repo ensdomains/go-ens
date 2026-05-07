@@ -20,9 +20,12 @@ func TestDeriveTokenId(t *testing.T) {
 			input:    "vitalik.eth",
 		},
 		{
+			// Long, intentionally-unregistered .eth label used as the unregistered-name
+			// fixture. Any .eth name is in principle registerable, so picking a long
+			// label keeps the registration cost high and the chance of collision low.
 			name:     "Invalid ENS domain",
 			expected: "",
-			input:    "sirnotappearinginthisregistry.eth",
+			input:    "this-name-is-not-registered-go-ens-test-fixture-do-not-register.eth",
 			err:      "unregistered name",
 		},
 		{
