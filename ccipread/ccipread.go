@@ -22,6 +22,7 @@ import (
 	"io"
 	"math/big"
 	"net/http"
+	neturl "net/url"
 	"strings"
 	"time"
 
@@ -41,6 +42,32 @@ const MaxRedirects = 4
 // or hostile. Cap conservatively at 16 MiB to keep a misbehaving gateway from
 // exhausting the caller's heap.
 const MaxGatewayBodyBytes = 16 * 1024 * 1024
+
+// GatewayHTTPError is returned when a CCIP-Read gateway responds with a
+// non-2xx HTTP status. Callers can use errors.As to recover the URL, status,
+// and (truncated) body so they can decide whether to retry or surface the
+// failure.
+//
+// This is distinct from the on-chain HTTPGatewayError typed-error in the
+// parent ens package, which decodes the UR's HttpError(uint16,string) revert.
+type GatewayHTTPError struct {
+	URL    string
+	Status int
+	Body   string
+}
+
+func (e *GatewayHTTPError) Error() string {
+	return fmt.Sprintf("ccipread: gateway %s: HTTP %d: %s", e.URL, e.Status, truncate(e.Body, 256))
+}
+
+// noRedirect is the CheckRedirect policy installed when the caller's HTTP
+// client doesn't supply one of its own. ERC-3668 gateways are expected to
+// return data directly, so a 3xx is suspicious; reflecting the response back
+// instead of following protects against SSRF via Location: redirects to
+// internal hosts (cloud metadata services, RFC1918 ranges, etc.).
+func noRedirect(_ *http.Request, _ []*http.Request) error {
+	return http.ErrUseLastResponse
+}
 
 // offchainLookupSelector is the first 4 bytes of
 // keccak256("OffchainLookup(address,string[],bytes,bytes4,bytes)").
@@ -111,6 +138,12 @@ func Call(ctx context.Context, backend Caller, to common.Address, data []byte, o
 	httpClient := opts.HTTPClient
 	if httpClient == nil {
 		httpClient = http.DefaultClient
+	}
+	if httpClient.CheckRedirect == nil {
+		// Defensive copy so we don't mutate the caller's shared client.
+		cp := *httpClient
+		cp.CheckRedirect = noRedirect
+		httpClient = &cp
 	}
 
 	target := to
@@ -258,6 +291,21 @@ func queryGateways(ctx context.Context, client *http.Client, urls []string, send
 }
 
 func queryGateway(ctx context.Context, client *http.Client, url, sender, data string) ([]byte, int, error) {
+	// Reject obviously hostile gateway URLs before we even build a request.
+	// Gateway URLs come from a smart contract (untrusted input), so a malicious
+	// resolver could return file://, gopher://, etc. By default Go's net/http
+	// transport rejects unknown schemes, but a caller-supplied custom transport
+	// might support them; this is defense-in-depth.
+	parsedURL, perr := neturl.Parse(url)
+	if perr != nil {
+		return nil, 0, fmt.Errorf("ccipread: gateway %q: invalid URL: %w", url, perr)
+	}
+	switch parsedURL.Scheme {
+	case "http", "https":
+		// ok
+	default:
+		return nil, 0, fmt.Errorf("ccipread: gateway %q: unsupported URL scheme %q", url, parsedURL.Scheme)
+	}
 	hasData := strings.Contains(url, "{data}")
 	hasSender := strings.Contains(url, "{sender}")
 	var req *http.Request
@@ -307,7 +355,11 @@ func queryGateway(ctx context.Context, client *http.Client, url, sender, data st
 		return nil, resp.StatusCode, err
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, resp.StatusCode, fmt.Errorf("ccipread: gateway %s: HTTP %d: %s", url, resp.StatusCode, truncate(string(bodyBytes), 256))
+		return nil, resp.StatusCode, &GatewayHTTPError{
+			URL:    url,
+			Status: resp.StatusCode,
+			Body:   string(bodyBytes),
+		}
 	}
 	// Gate the JSON decode on Content-Type so a misbehaving gateway returning
 	// HTML or text/plain with a 200 status surfaces as a clean error instead of

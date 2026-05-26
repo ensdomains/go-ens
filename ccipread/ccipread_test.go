@@ -184,6 +184,87 @@ func TestCall_RejectsMissingContentType(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
+// A4 — gateway URL scheme allowlist.
+// ---------------------------------------------------------------------------
+
+func TestCall_RejectsNonHTTPScheme(t *testing.T) {
+	target := common.HexToAddress("0x6666666666666666666666666666666666666666")
+	revert := buildOffchainLookupRevert(t, target, []string{"file:///etc/passwd"})
+	backend := &loopBackend{revertHex: revert}
+
+	_, err := ccipread.Call(context.Background(), backend, target, []byte{0x00}, nil)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "unsupported URL scheme")
+}
+
+func TestCall_RejectsGopherScheme(t *testing.T) {
+	target := common.HexToAddress("0x7777777777777777777777777777777777777777")
+	revert := buildOffchainLookupRevert(t, target, []string{"gopher://internal.svc/data"})
+	backend := &loopBackend{revertHex: revert}
+
+	_, err := ccipread.Call(context.Background(), backend, target, []byte{0x00}, nil)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "unsupported URL scheme")
+}
+
+// ---------------------------------------------------------------------------
+// A5 — HTTP redirects are not followed by default.
+// ---------------------------------------------------------------------------
+
+func TestCall_DoesNotFollowRedirects(t *testing.T) {
+	// The "redirect target" server would record a hit if the client followed
+	// the redirect — we assert it doesn't.
+	var followed atomic.Int32
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		followed.Add(1)
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"data":"0x"}`))
+	}))
+	defer target.Close()
+
+	// The "gateway" server returns a 302 pointing at the target.
+	redirector := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Location", target.URL)
+		w.WriteHeader(http.StatusFound)
+	}))
+	defer redirector.Close()
+
+	tgt := common.HexToAddress("0x8888888888888888888888888888888888888888")
+	revert := buildOffchainLookupRevert(t, tgt, []string{redirector.URL})
+	backend := &loopBackend{revertHex: revert}
+
+	_, err := ccipread.Call(context.Background(), backend, tgt, []byte{0x00}, nil)
+	require.Error(t, err, "gateway returning a 3xx without data must error, not silently follow")
+	assert.Equal(t, int32(0), followed.Load(), "redirect target must not be reached")
+}
+
+// ---------------------------------------------------------------------------
+// A6 — typed GatewayHTTPError for non-2xx responses.
+// ---------------------------------------------------------------------------
+
+func TestCall_4xxReturnsTypedError(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(`{"error":"bad request"}`))
+	}))
+	defer srv.Close()
+
+	target := common.HexToAddress("0x9999999999999999999999999999999999999999")
+	revert := buildOffchainLookupRevert(t, target, []string{srv.URL})
+	backend := &loopBackend{revertHex: revert}
+
+	_, err := ccipread.Call(context.Background(), backend, target, []byte{0x00}, nil)
+	require.Error(t, err)
+
+	var typed *ccipread.GatewayHTTPError
+	require.ErrorAs(t, err, &typed, "expected GatewayHTTPError, got %T: %v", err, err)
+	assert.Equal(t, 400, typed.Status)
+	assert.Equal(t, srv.URL, typed.URL)
+	assert.Contains(t, typed.Body, "bad request")
+}
+
+// ---------------------------------------------------------------------------
 // Helper backend that reverts only on the first call, then succeeds.
 // ---------------------------------------------------------------------------
 
