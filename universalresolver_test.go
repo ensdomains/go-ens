@@ -23,8 +23,14 @@ import (
 // mainnetClient connects to a public Ethereum mainnet RPC. The endpoint can
 // be overridden with GO_ENS_TEST_RPC; without an override the test falls
 // back to a public endpoint so that `go test` works out of the box.
+//
+// Live-RPC tests skip themselves under `go test -short`, so CI runs that
+// can't reach the network (or that are rate-limited) keep working.
 func mainnetClient(t *testing.T) *ethclient.Client {
 	t.Helper()
+	if testing.Short() {
+		t.Skip("skipping live-RPC test under -short")
+	}
 	url := os.Getenv("GO_ENS_TEST_RPC")
 	if url == "" {
 		// Public mainnet RPC. Surfaces revert data via the JSON-RPC `data`
