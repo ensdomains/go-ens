@@ -20,7 +20,10 @@ import (
 // with a zero byte representing the root label. The empty string
 // encodes to a single zero byte.
 //
-// A label may be at most 255 bytes after IDNA normalisation.
+// Per RFC 1035, a single label may be at most 63 bytes (the top two
+// bits of the length octet are reserved for compression pointers) and
+// the full encoded name may be at most 255 octets including length
+// bytes and the terminating null.
 func DNSEncode(name string) ([]byte, error) {
 	if name == "" {
 		return []byte{0}, nil
@@ -39,11 +42,15 @@ func DNSEncode(name string) ([]byte, error) {
 			return nil, fmt.Errorf("empty label at position %d in %q", i, name)
 		}
 		labelBytes := []byte(label)
-		if len(labelBytes) > 255 {
-			return nil, errors.New("label exceeds 255 bytes")
+		if len(labelBytes) > 63 {
+			return nil, errors.New("label exceeds 63 bytes")
 		}
 		out = append(out, byte(len(labelBytes)))
 		out = append(out, labelBytes...)
+	}
+	// +1 for the terminating null we are about to append.
+	if len(out)+1 > 255 {
+		return nil, errors.New("encoded name exceeds 255 bytes")
 	}
 	out = append(out, 0)
 	return out, nil
