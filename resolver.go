@@ -29,8 +29,6 @@ import (
 	"github.com/wealdtech/go-ens/v3/contracts/resolver"
 )
 
-var zeroHash = make([]byte, 32)
-
 // UnknownAddress is the address to which unknown entries resolve.
 var UnknownAddress = common.HexToAddress("00")
 
@@ -223,12 +221,8 @@ func ResolveContext(ctx context.Context, backend bind.ContractBackend, input str
 }
 
 func resolveName(ctx context.Context, backend bind.ContractBackend, input string) (common.Address, error) {
-	nameHash, err := NameHash(input)
-	if err != nil {
+	if _, err := NameHash(input); err != nil {
 		return UnknownAddress, err
-	}
-	if bytes.Equal(nameHash[:], zeroHash) {
-		return UnknownAddress, errors.New("bad name")
 	}
 	ur, err := NewUniversalResolver(backend)
 	if err != nil {

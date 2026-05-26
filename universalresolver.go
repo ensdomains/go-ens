@@ -124,8 +124,14 @@ func (u *UniversalResolver) Resolve(ctx context.Context, name string, callData [
 	if len(values) != 2 {
 		return nil, common.Address{}, errors.New("universal resolver: unexpected resolve output arity")
 	}
-	result, _ := values[0].([]byte)
-	resolver, _ := values[1].(common.Address)
+	result, ok := values[0].([]byte)
+	if !ok {
+		return nil, common.Address{}, fmt.Errorf("universal resolver: resolve result has unexpected type %T", values[0])
+	}
+	resolver, ok := values[1].(common.Address)
+	if !ok {
+		return nil, common.Address{}, fmt.Errorf("universal resolver: resolve resolver has unexpected type %T", values[1])
+	}
 	return result, resolver, nil
 }
 
@@ -176,8 +182,17 @@ func (u *UniversalResolver) Reverse(ctx context.Context, address []byte, coinTyp
 	if len(values) != 3 {
 		return "", common.Address{}, common.Address{}, errors.New("universal resolver: unexpected reverse output arity")
 	}
-	name, _ := values[0].(string)
-	resolver, _ := values[1].(common.Address)
-	reverseResolver, _ := values[2].(common.Address)
+	name, ok := values[0].(string)
+	if !ok {
+		return "", common.Address{}, common.Address{}, fmt.Errorf("universal resolver: reverse name has unexpected type %T", values[0])
+	}
+	resolver, ok := values[1].(common.Address)
+	if !ok {
+		return "", common.Address{}, common.Address{}, fmt.Errorf("universal resolver: reverse resolver has unexpected type %T", values[1])
+	}
+	reverseResolver, ok := values[2].(common.Address)
+	if !ok {
+		return "", common.Address{}, common.Address{}, fmt.Errorf("universal resolver: reverse reverseResolver has unexpected type %T", values[2])
+	}
 	return name, resolver, reverseResolver, nil
 }
