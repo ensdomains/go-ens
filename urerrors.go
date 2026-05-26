@@ -239,13 +239,26 @@ func extractRevertData(err error) ([]byte, bool) {
 	if !errors.As(err, &de) {
 		return nil, false
 	}
-	raw, ok := de.ErrorData().(string)
-	if !ok {
+	return normalizeErrorData(de.ErrorData())
+}
+
+// normalizeErrorData accepts the various concrete types that go-ethereum's
+// rpc.DataError implementers return for ErrorData(): a 0x-prefixed string
+// (the common case for net/http JSON-RPC), or raw bytes (some wrapped or
+// mock backends). hexutil.Bytes is reported as []byte via its underlying
+// type, so the []byte branch catches it too.
+func normalizeErrorData(v interface{}) ([]byte, bool) {
+	switch d := v.(type) {
+	case string:
+		raw, err := hex.DecodeString(strings.TrimPrefix(d, "0x"))
+		if err != nil {
+			return nil, false
+		}
+		return raw, true
+	case []byte:
+		// Already-decoded revert bytes — accept as-is.
+		return d, true
+	default:
 		return nil, false
 	}
-	revert, derr := hex.DecodeString(strings.TrimPrefix(raw, "0x"))
-	if derr != nil {
-		return nil, false
-	}
-	return revert, true
 }

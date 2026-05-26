@@ -229,15 +229,29 @@ func decodeOffchainLookup(err error) (*OffchainLookup, bool) {
 	if !errors.As(err, &de) {
 		return nil, false
 	}
-	raw, ok := de.ErrorData().(string)
+	revert, ok := normalizeErrorData(de.ErrorData())
 	if !ok {
 		return nil, false
 	}
-	revert, err := hex.DecodeString(strings.TrimPrefix(raw, "0x"))
-	if err != nil {
+	return DecodeOffchainLookup(revert)
+}
+
+// normalizeErrorData accepts the various concrete types go-ethereum's
+// rpc.DataError implementers return for ErrorData(): a 0x-prefixed hex
+// string (the JSON-RPC case) or raw bytes (mocked / wrapped backends).
+func normalizeErrorData(v interface{}) ([]byte, bool) {
+	switch d := v.(type) {
+	case string:
+		raw, err := hex.DecodeString(strings.TrimPrefix(d, "0x"))
+		if err != nil {
+			return nil, false
+		}
+		return raw, true
+	case []byte:
+		return d, true
+	default:
 		return nil, false
 	}
-	return DecodeOffchainLookup(revert)
 }
 
 func encodeCallback(selector [4]byte, response, extraData []byte) ([]byte, error) {

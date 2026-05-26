@@ -127,6 +127,27 @@ func TestTranslateURRevert_UnknownPassThrough(t *testing.T) {
 	require.Same(t, rpcErr, got, "unknown selectors must not be translated")
 }
 
+// rawDataRPCErr mirrors backends (e.g. mocks, custom RPC wrappers) that
+// surface ErrorData() as already-decoded bytes rather than a hex string.
+type rawDataRPCErr struct {
+	msg  string
+	data []byte
+}
+
+func (e *rawDataRPCErr) Error() string          { return e.msg }
+func (e *rawDataRPCErr) ErrorData() interface{} { return e.data }
+
+func TestTranslateURRevert_AcceptsByteSliceErrorData(t *testing.T) {
+	// Build the same EmptyAddress revert but expose it as []byte, not string.
+	revertBytes := append([]byte{}, selEmptyAddress[:]...)
+	rpcErr := &rawDataRPCErr{msg: "execution reverted", data: revertBytes}
+
+	got := translateURRevert(rpcErr)
+	var typed *EmptyAddressError
+	require.True(t, errors.As(got, &typed), "expected EmptyAddressError, got %T: %v", got, got)
+	require.True(t, errors.Is(got, ErrNoAddress))
+}
+
 func TestTranslateURRevert_NonRPCError(t *testing.T) {
 	plain := errors.New("boom")
 	require.Same(t, plain, translateURRevert(plain), "non-RPC errors must pass through")
