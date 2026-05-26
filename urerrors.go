@@ -60,13 +60,13 @@ func (e *UnsupportedResolverProfileError) Error() string {
 	return fmt.Sprintf("resolver does not implement profile 0x%s", hex.EncodeToString(e.Selector[:]))
 }
 
-// ResolverErrorError corresponds to `ResolverError(bytes)`: the downstream
+// ResolverRevertError corresponds to `ResolverError(bytes)`: the downstream
 // resolver itself reverted; the inner revert bytes are preserved verbatim.
-type ResolverErrorError struct {
+type ResolverRevertError struct {
 	Data []byte
 }
 
-func (e *ResolverErrorError) Error() string {
+func (e *ResolverRevertError) Error() string {
 	return fmt.Sprintf("resolver reverted: 0x%s", hex.EncodeToString(e.Data))
 }
 
@@ -195,7 +195,7 @@ func translateURRevert(err error) error {
 		}
 		return out
 	case selResolverError:
-		out := &ResolverErrorError{}
+		out := &ResolverRevertError{}
 		if vals, derr := argsResolverError.Unpack(body); derr == nil && len(vals) == 1 {
 			if data, ok := vals[0].([]byte); ok {
 				out.Data = data

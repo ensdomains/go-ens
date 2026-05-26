@@ -81,6 +81,45 @@ func TestTranslateURRevert_ResolverNotContract(t *testing.T) {
 	require.Equal(t, dnsName, typed.DNSName)
 }
 
+func TestTranslateURRevert_ResolverError(t *testing.T) {
+	inner := []byte{0xde, 0xad, 0xbe, 0xef, 0x01, 0x02}
+	body := mustPackArgs(t, argsResolverError, inner)
+	rpcErr := &fakeRPCErr{msg: "execution reverted", data: revert(t, selResolverError, body...)}
+
+	got := translateURRevert(rpcErr)
+	var typed *ResolverRevertError
+	require.True(t, errors.As(got, &typed), "expected ResolverRevertError, got %T: %v", got, got)
+	require.Equal(t, inner, typed.Data)
+	require.Contains(t, got.Error(), "resolver reverted: 0xdeadbeef0102")
+}
+
+func TestTranslateURRevert_HTTPGateway(t *testing.T) {
+	body := mustPackArgs(t, argsHTTPError, uint16(503), "gateway temporarily unavailable")
+	rpcErr := &fakeRPCErr{msg: "execution reverted", data: revert(t, selHTTPError, body...)}
+
+	got := translateURRevert(rpcErr)
+	var typed *HTTPGatewayError
+	require.True(t, errors.As(got, &typed), "expected HTTPGatewayError, got %T: %v", got, got)
+	require.Equal(t, uint16(503), typed.Status)
+	require.Equal(t, "gateway temporarily unavailable", typed.Message)
+	require.Contains(t, got.Error(), "503")
+	require.Contains(t, got.Error(), "gateway temporarily unavailable")
+}
+
+func TestTranslateURRevert_ReverseAddressMismatch(t *testing.T) {
+	name := "alice.eth"
+	addrBytes := common.HexToAddress("0x000000000000000000000000000000000000bEEF").Bytes()
+	body := mustPackArgs(t, argsReverseAddressMismatch, name, addrBytes)
+	rpcErr := &fakeRPCErr{msg: "execution reverted", data: revert(t, selReverseAddressMismatch, body...)}
+
+	got := translateURRevert(rpcErr)
+	var typed *ReverseAddressMismatchError
+	require.True(t, errors.As(got, &typed), "expected ReverseAddressMismatchError, got %T: %v", got, got)
+	require.Equal(t, name, typed.Name)
+	require.Equal(t, addrBytes, typed.Address)
+	require.Contains(t, got.Error(), name)
+}
+
 func TestTranslateURRevert_UnknownPassThrough(t *testing.T) {
 	// A revert that is not a known UR custom error must pass through unchanged.
 	rpcErr := &fakeRPCErr{msg: "execution reverted", data: "0xdeadbeef"}
