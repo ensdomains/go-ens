@@ -20,10 +20,10 @@ import (
 // with a zero byte representing the root label. The empty string
 // encodes to a single zero byte.
 //
-// Per RFC 1035, a single label may be at most 63 bytes (the top two
-// bits of the length octet are reserved for compression pointers) and
-// the full encoded name may be at most 255 octets including length
-// bytes and the terminating null.
+// Per ENSIP-10 the encoding follows RFC 1035 §3.1 — labels are at
+// most 63 bytes (the top two bits of the length octet are reserved
+// for compression pointers) — except that ENSIP-10 explicitly removes
+// RFC 1035's 255-octet limit on the total encoded name length.
 func DNSEncode(name string) ([]byte, error) {
 	if name == "" {
 		return []byte{0}, nil
@@ -47,10 +47,6 @@ func DNSEncode(name string) ([]byte, error) {
 		}
 		out = append(out, byte(len(labelBytes)))
 		out = append(out, labelBytes...)
-	}
-	// +1 for the terminating null we are about to append.
-	if len(out)+1 > 255 {
-		return nil, errors.New("encoded name exceeds 255 bytes")
 	}
 	out = append(out, 0)
 	return out, nil

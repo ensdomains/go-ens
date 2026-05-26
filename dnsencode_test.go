@@ -163,9 +163,9 @@ func TestDNSEncode_Label256Bytes(t *testing.T) {
 // ---------------------------------------------------------------------------
 // Total-name-length boundaries.
 //
-// RFC 1035 caps the full encoded name at 255 octets (including the per-label
-// length bytes and the terminating null). The current implementation has no
-// total-length guard, so the 256-octet test fails (bug A3).
+// ENSIP-10 explicitly removes RFC 1035's 255-octet cap on the total encoded
+// name, so DNSEncode must accept arbitrarily long encodings as long as each
+// label individually conforms.
 // ---------------------------------------------------------------------------
 
 // 255 octets total: 63 + 63 + 63 + 61 data bytes; +4 length bytes +1 null.
@@ -181,7 +181,8 @@ func TestDNSEncode_TotalLength255(t *testing.T) {
 	assert.Len(t, out, 255)
 }
 
-// EXPECTED TO FAIL against current code (bug A3: no total-length guard).
+// 256 octets — past the RFC 1035 total-length cap, but ENSIP-10 removes that
+// cap, so this must still succeed.
 func TestDNSEncode_TotalLength256(t *testing.T) {
 	parts := []string{
 		strings.Repeat("a", 63),
@@ -189,8 +190,21 @@ func TestDNSEncode_TotalLength256(t *testing.T) {
 		strings.Repeat("c", 63),
 		strings.Repeat("d", 62),
 	}
-	_, err := ens.DNSEncode(strings.Join(parts, "."))
-	require.Error(t, err, "encoded names above 255 octets are invalid per RFC 1035")
+	out, err := ens.DNSEncode(strings.Join(parts, "."))
+	require.NoError(t, err, "ENSIP-10 explicitly removes the RFC 1035 255-octet cap")
+	assert.Len(t, out, 256)
+}
+
+// Far beyond RFC 1035's cap — ENSIP-10 still requires this to succeed.
+func TestDNSEncode_TotalLengthFarAbove255(t *testing.T) {
+	// 10 labels of 63 bytes each = 630 data + 10 length + 1 null = 641 octets.
+	parts := make([]string, 10)
+	for i := range parts {
+		parts[i] = strings.Repeat("a", 63)
+	}
+	out, err := ens.DNSEncode(strings.Join(parts, "."))
+	require.NoError(t, err)
+	assert.Len(t, out, 641)
 }
 
 // ---------------------------------------------------------------------------
