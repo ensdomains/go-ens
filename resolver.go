@@ -98,6 +98,12 @@ func PublicResolverAddress(backend bind.ContractBackend) (common.Address, error)
 }
 
 // Address returns the Ethereum address of the domain.
+//
+// Note: this calls the resolver contract directly via the legacy registry
+// walk, so it does NOT support ENSIP-10 wildcard resolution or ERC-3668
+// CCIP-Read. Names whose addresses live off-chain or on an L2 will return
+// the zero address or an error here. For wildcard- and CCIP-Read-aware
+// resolution, use ens.Resolve / UniversalResolver.ResolveAddress instead.
 func (r *Resolver) Address() (common.Address, error) {
 	nameHash, err := NameHash(r.domain)
 	if err != nil {

@@ -295,6 +295,13 @@ func (n *Name) SetResolverAddress(address common.Address, opts *bind.TransactOpt
 
 // Address fetches the address of the name for a given coin type.
 // Coin types are defined at https://github.com/satoshilabs/slips/blob/master/slip-0044.md
+//
+// Note: this calls the resolver contract directly via the legacy registry
+// walk, so it does NOT support ENSIP-10 wildcard resolution or ERC-3668
+// CCIP-Read. Names whose addresses live off-chain or on an L2 will return
+// nil or an error here. For wildcard- and CCIP-Read-aware resolution, use
+// ens.Resolve / UniversalResolver.ResolveAddress for coin type 60 (ETH);
+// a UR-routed multicoin read is tracked as a follow-up.
 func (n *Name) Address(coinType uint64) ([]byte, error) {
 	resolver, err := NewResolver(n.backend, n.Name)
 	if err != nil {
