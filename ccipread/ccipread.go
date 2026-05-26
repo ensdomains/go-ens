@@ -284,8 +284,16 @@ func queryGateway(ctx context.Context, client *http.Client, url, sender, data st
 	}
 	if client.Timeout == 0 {
 		// Best-effort timeout when the caller didn't supply one. Without this
-		// a wedged gateway would block resolution indefinitely.
-		ctxT, cancel := context.WithTimeout(req.Context(), 30*time.Second)
+		// a wedged gateway would block resolution indefinitely. Use the smaller
+		// of the caller's remaining deadline (if any) and 30s so a tight
+		// per-request deadline isn't extended.
+		timeout := 30 * time.Second
+		if deadline, ok := ctx.Deadline(); ok {
+			if remaining := time.Until(deadline); remaining < timeout {
+				timeout = remaining
+			}
+		}
+		ctxT, cancel := context.WithTimeout(req.Context(), timeout)
 		defer cancel()
 		req = req.WithContext(ctxT)
 	}

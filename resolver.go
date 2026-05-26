@@ -189,9 +189,21 @@ func (r *Resolver) InterfaceImplementer(interfaceID [4]byte) (common.Address, er
 //
 // This will return an error if the name is not found or otherwise resolves
 // to the zero address.
+//
+// Resolve uses a background context, so callers cannot cancel a slow
+// CCIP-Read hop or propagate an HTTP-handler deadline. Use ResolveContext
+// when either is needed.
 func Resolve(backend bind.ContractBackend, input string) (common.Address, error) {
+	return ResolveContext(context.Background(), backend, input)
+}
+
+// ResolveContext is identical to Resolve but honours ctx for cancellation
+// and deadline propagation. The context flows through CCIP-Read hops, so a
+// caller that sets a per-request deadline can cap the total resolution
+// time end-to-end.
+func ResolveContext(ctx context.Context, backend bind.ContractBackend, input string) (common.Address, error) {
 	if strings.Contains(input, ".") {
-		return resolveName(backend, input)
+		return resolveName(ctx, backend, input)
 	}
 	if (strings.HasPrefix(input, "0x") && len(input) > 42) || (!strings.HasPrefix(input, "0x") && len(input) > 40) {
 		return UnknownAddress, errors.New("address too long")
@@ -204,7 +216,7 @@ func Resolve(backend bind.ContractBackend, input string) (common.Address, error)
 	return address, nil
 }
 
-func resolveName(backend bind.ContractBackend, input string) (common.Address, error) {
+func resolveName(ctx context.Context, backend bind.ContractBackend, input string) (common.Address, error) {
 	nameHash, err := NameHash(input)
 	if err != nil {
 		return UnknownAddress, err
@@ -216,7 +228,7 @@ func resolveName(backend bind.ContractBackend, input string) (common.Address, er
 	if err != nil {
 		return UnknownAddress, err
 	}
-	return ur.ResolveAddress(context.Background(), input)
+	return ur.ResolveAddress(ctx, input)
 }
 
 // SetText sets the text associated with a name.

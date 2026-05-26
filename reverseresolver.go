@@ -110,12 +110,21 @@ func Format(backend bind.ContractBackend, address common.Address) string {
 // same way as fully on-chain reverse records.
 //
 // This will return an error if no primary name is set for the address.
+//
+// ReverseResolve uses a background context. Use ReverseResolveContext to
+// propagate cancellation and deadlines through CCIP-Read hops.
 func ReverseResolve(backend bind.ContractBackend, address common.Address) (string, error) {
+	return ReverseResolveContext(context.Background(), backend, address)
+}
+
+// ReverseResolveContext is identical to ReverseResolve but honours ctx for
+// cancellation and deadline propagation.
+func ReverseResolveContext(ctx context.Context, backend bind.ContractBackend, address common.Address) (string, error) {
 	ur, err := NewUniversalResolver(backend)
 	if err != nil {
 		return "", err
 	}
-	name, _, _, err := ur.Reverse(context.Background(), address.Bytes(), CoinTypeETH)
+	name, _, _, err := ur.Reverse(ctx, address.Bytes(), CoinTypeETH)
 	if err != nil {
 		return "", err
 	}
