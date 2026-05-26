@@ -34,6 +34,24 @@ const CoinTypeETH = uint64(60)
 // this selector to the discovered resolver and returns the abi-encoded result.
 var addrSelector = [4]byte{0x3b, 0x3b, 0x57, 0xde}
 
+// knownURChains lists the chain IDs on which the canonical UR proxy address
+// is deployed by the ENS DAO. Callers on other chains must pass an explicit
+// address via NewUniversalResolverAt.
+var knownURChains = map[uint64]struct{}{
+	1:        {}, // Ethereum mainnet
+	11155111: {}, // Sepolia testnet
+}
+
+// UnknownChainError is returned by NewUniversalResolver when the backend
+// reports a chain ID without a known UR deployment at the canonical address.
+type UnknownChainError struct {
+	ChainID *big.Int
+}
+
+func (e *UnknownChainError) Error() string {
+	return fmt.Sprintf("universal resolver: no canonical deployment on chain ID %s; pass an explicit address via NewUniversalResolverAt", e.ChainID)
+}
+
 // UniversalResolver wraps the ENS Universal Resolver and exposes resolution
 // helpers that transparently follow ERC-3668 OffchainLookup reverts via the
 // ccipread package.
@@ -45,7 +63,23 @@ type UniversalResolver struct {
 
 // NewUniversalResolver returns a UniversalResolver bound to the canonical
 // proxy address on whichever chain the backend is connected to.
+//
+// When the backend exposes a chain ID (ethclient.Client and most production
+// backends do) this verifies the chain is one where the canonical UR is
+// deployed and returns *UnknownChainError otherwise. Backends that don't
+// expose a chain ID skip the check and the canonical address is used as-is —
+// callers on devnets / forks / alt-L1s should prefer NewUniversalResolverAt.
 func NewUniversalResolver(backend bind.ContractBackend) (*UniversalResolver, error) {
+	if cid, ok := backend.(interface {
+		ChainID(context.Context) (*big.Int, error)
+	}); ok {
+		chainID, err := cid.ChainID(context.Background())
+		if err == nil && chainID != nil {
+			if _, known := knownURChains[chainID.Uint64()]; !known {
+				return nil, &UnknownChainError{ChainID: chainID}
+			}
+		}
+	}
 	return NewUniversalResolverAt(backend, common.HexToAddress(UniversalResolverContractAddress))
 }
 

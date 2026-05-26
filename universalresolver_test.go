@@ -10,15 +10,60 @@ package ens_test
 
 import (
 	"context"
+	"math/big"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/stretchr/testify/require"
 	ens "github.com/wealdtech/go-ens/v3"
 )
+
+// chainIDBackend embeds a nil ContractBackend and overrides ChainID, so the
+// constructor's type-assertion fires but no method outside ChainID can be
+// called (which is fine because the guardrail returns before any other call).
+type chainIDBackend struct {
+	bind.ContractBackend
+	chainID *big.Int
+}
+
+func (b *chainIDBackend) ChainID(_ context.Context) (*big.Int, error) {
+	return b.chainID, nil
+}
+
+func TestNewUniversalResolver_AcceptsMainnet(t *testing.T) {
+	ur, err := ens.NewUniversalResolver(&chainIDBackend{chainID: big.NewInt(1)})
+	require.NoError(t, err)
+	require.NotNil(t, ur)
+}
+
+func TestNewUniversalResolver_AcceptsSepolia(t *testing.T) {
+	ur, err := ens.NewUniversalResolver(&chainIDBackend{chainID: big.NewInt(11155111)})
+	require.NoError(t, err)
+	require.NotNil(t, ur)
+}
+
+func TestNewUniversalResolver_RejectsUnknownChain(t *testing.T) {
+	_, err := ens.NewUniversalResolver(&chainIDBackend{chainID: big.NewInt(8453)}) // Base
+	require.Error(t, err)
+	var typed *ens.UnknownChainError
+	require.ErrorAs(t, err, &typed)
+	require.Equal(t, int64(8453), typed.ChainID.Int64())
+	require.Contains(t, err.Error(), "NewUniversalResolverAt")
+}
+
+// NewUniversalResolverAt skips the chain-ID check by design — useful for
+// devnets / forks / alt-L1s where the UR is deployed at a non-canonical
+// address.
+func TestNewUniversalResolverAt_AcceptsAnyChain(t *testing.T) {
+	custom := common.HexToAddress("0x000000000000000000000000000000000000bEEF")
+	ur, err := ens.NewUniversalResolverAt(&chainIDBackend{chainID: big.NewInt(8453)}, custom)
+	require.NoError(t, err)
+	require.Equal(t, custom, ur.Address())
+}
 
 // mainnetClient connects to a public Ethereum mainnet RPC. The endpoint can
 // be overridden with GO_ENS_TEST_RPC; without an override the test falls
