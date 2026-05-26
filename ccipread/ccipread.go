@@ -35,6 +35,13 @@ import (
 // Four matches the limit used by ENS-aware libraries (viem, ethers).
 const MaxRedirects = 4
 
+// MaxGatewayBodyBytes caps the gateway response body that will be read into
+// memory. CCIP-Read responses are small JSON envelopes (a 0x-prefixed hex
+// payload), so anything beyond a few hundred kilobytes is either pathological
+// or hostile. Cap conservatively at 16 MiB to keep a misbehaving gateway from
+// exhausting the caller's heap.
+const MaxGatewayBodyBytes = 16 * 1024 * 1024
+
 // offchainLookupSelector is the first 4 bytes of
 // keccak256("OffchainLookup(address,string[],bytes,bytes4,bytes)").
 var offchainLookupSelector = []byte{0x55, 0x6f, 0x18, 0x30}
@@ -108,7 +115,7 @@ func Call(ctx context.Context, backend Caller, to common.Address, data []byte, o
 
 	target := to
 	callData := data
-	for hop := 0; hop <= max; hop++ {
+	for hop := 0; hop < max; hop++ {
 		out, callErr := backend.CallContract(ctx, ethereum.CallMsg{To: &target, Data: callData}, opts.BlockNumber)
 		if callErr == nil {
 			return out, nil
@@ -287,12 +294,18 @@ func queryGateway(ctx context.Context, client *http.Client, url, sender, data st
 		return nil, 0, fmt.Errorf("ccipread: gateway %s: %w", url, err)
 	}
 	defer resp.Body.Close()
-	bodyBytes, err := io.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(io.LimitReader(resp.Body, MaxGatewayBodyBytes))
 	if err != nil {
 		return nil, resp.StatusCode, err
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, resp.StatusCode, fmt.Errorf("ccipread: gateway %s: HTTP %d: %s", url, resp.StatusCode, truncate(string(bodyBytes), 256))
+	}
+	// Gate the JSON decode on Content-Type so a misbehaving gateway returning
+	// HTML or text/plain with a 200 status surfaces as a clean error instead of
+	// a misleading "invalid JSON".
+	if ct := resp.Header.Get("Content-Type"); !contentTypeIsJSON(ct) {
+		return nil, resp.StatusCode, fmt.Errorf("ccipread: gateway %s: unexpected Content-Type %q", url, ct)
 	}
 	var parsed gatewayResponse
 	if err := json.Unmarshal(bodyBytes, &parsed); err != nil {
@@ -310,4 +323,17 @@ func truncate(s string, n int) string {
 		return s
 	}
 	return s[:n] + "..."
+}
+
+// contentTypeIsJSON reports whether a Content-Type header indicates JSON,
+// allowing for media-type parameters like `application/json; charset=utf-8`.
+func contentTypeIsJSON(ct string) bool {
+	if ct == "" {
+		return false
+	}
+	if i := strings.Index(ct, ";"); i >= 0 {
+		ct = ct[:i]
+	}
+	ct = strings.TrimSpace(strings.ToLower(ct))
+	return ct == "application/json"
 }
