@@ -46,6 +46,12 @@ func TestNewUniversalResolver_AcceptsSepolia(t *testing.T) {
 	require.NotNil(t, ur)
 }
 
+func TestNewUniversalResolver_AcceptsHolesky(t *testing.T) {
+	ur, err := ens.NewUniversalResolver(&chainIDBackend{chainID: big.NewInt(17000)})
+	require.NoError(t, err)
+	require.NotNil(t, ur)
+}
+
 func TestNewUniversalResolver_RejectsUnknownChain(t *testing.T) {
 	_, err := ens.NewUniversalResolver(&chainIDBackend{chainID: big.NewInt(8453)}) // Base
 	require.Error(t, err)
