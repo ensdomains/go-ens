@@ -28,13 +28,17 @@ func DNSEncode(name string) ([]byte, error) {
 	if name == "" {
 		return []byte{0}, nil
 	}
+	// Trim a single trailing dot before normalisation — ENSIP-15 rejects
+	// empty labels, but DNS-style "foo.eth." input is convenient. Multiple
+	// trailing dots still produce an empty label and are rejected.
+	name = strings.TrimSuffix(name, ".")
+	if name == "" {
+		return []byte{0}, nil
+	}
 	normalised, err := Normalize(name)
 	if err != nil {
 		return nil, err
 	}
-	// Trailing dots produce empty labels which are not meaningful in ENS;
-	// trim a single trailing dot to be lenient with input.
-	normalised = strings.TrimSuffix(normalised, ".")
 	parts := strings.Split(normalised, ".")
 	out := make([]byte, 0, len(normalised)+len(parts)+1)
 	for i, label := range parts {

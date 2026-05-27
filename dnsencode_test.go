@@ -107,9 +107,14 @@ func TestDNSEncode_LeadingDot(t *testing.T) {
 	assert.Contains(t, err.Error(), "empty label")
 }
 
+// A single dot is the DNS root domain — it encodes to a single null byte,
+// matching the empty-string case. The trailing-dot trim absorbs the dot
+// before normalisation runs, so this is allowed (consistent with
+// TestDNSEncode_Empty).
 func TestDNSEncode_OnlyDot(t *testing.T) {
-	_, err := ens.DNSEncode(".")
-	require.Error(t, err)
+	out, err := ens.DNSEncode(".")
+	require.NoError(t, err)
+	require.Equal(t, []byte{0}, out)
 }
 
 func TestDNSEncode_DoubleDotInMiddle(t *testing.T) {
