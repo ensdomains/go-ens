@@ -224,7 +224,7 @@ func resolveName(ctx context.Context, backend bind.ContractBackend, input string
 	if _, err := NameHash(input); err != nil {
 		return UnknownAddress, err
 	}
-	ur, err := NewUniversalResolver(backend)
+	ur, err := NewUniversalResolverContext(ctx, backend)
 	if err != nil {
 		return UnknownAddress, err
 	}

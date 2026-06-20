@@ -120,7 +120,7 @@ func ReverseResolve(backend bind.ContractBackend, address common.Address) (strin
 // ReverseResolveContext is identical to ReverseResolve but honours ctx for
 // cancellation and deadline propagation.
 func ReverseResolveContext(ctx context.Context, backend bind.ContractBackend, address common.Address) (string, error) {
-	ur, err := NewUniversalResolver(backend)
+	ur, err := NewUniversalResolverContext(ctx, backend)
 	if err != nil {
 		return "", err
 	}

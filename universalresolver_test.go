@@ -71,6 +71,64 @@ func TestNewUniversalResolverAt_AcceptsAnyChain(t *testing.T) {
 	require.Equal(t, custom, ur.Address())
 }
 
+// slowChainIDBackend blocks on ctx until released, then returns its chain ID.
+// Used to assert that NewUniversalResolverContext propagates ctx cancellation
+// into the chain-ID probe instead of relying on context.Background().
+type slowChainIDBackend struct {
+	bind.ContractBackend
+	chainID *big.Int
+	release chan struct{}
+}
+
+func (b *slowChainIDBackend) ChainID(ctx context.Context) (*big.Int, error) {
+	select {
+	case <-b.release:
+		return b.chainID, nil
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+}
+
+// TestNewUniversalResolverContext_PropagatesCancellation asserts that a
+// cancelled ctx surfaces as ctx.Err() from the constructor's chain-ID probe,
+// rather than the probe running to completion on an uncancellable background
+// context.
+func TestNewUniversalResolverContext_PropagatesCancellation(t *testing.T) {
+	backend := &slowChainIDBackend{
+		chainID: big.NewInt(1),
+		release: make(chan struct{}),
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := ens.NewUniversalResolverContext(ctx, backend)
+	require.ErrorIs(t, err, context.Canceled,
+		"a cancelled ctx must surface as context.Canceled from the chain-ID probe")
+}
+
+// TestNewUniversalResolverContext_HonoursDeadline mirrors the cancellation
+// test but with a context deadline that expires during the probe.
+func TestNewUniversalResolverContext_HonoursDeadline(t *testing.T) {
+	backend := &slowChainIDBackend{
+		chainID: big.NewInt(1),
+		release: make(chan struct{}),
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 0)
+	defer cancel()
+
+	_, err := ens.NewUniversalResolverContext(ctx, backend)
+	require.ErrorIs(t, err, context.DeadlineExceeded,
+		"an expired deadline must surface as context.DeadlineExceeded from the chain-ID probe")
+}
+
+// TestNewUniversalResolverContext_AcceptsKnownChain ensures the context-aware
+// constructor still returns a usable resolver on the happy path.
+func TestNewUniversalResolverContext_AcceptsKnownChain(t *testing.T) {
+	ur, err := ens.NewUniversalResolverContext(context.Background(), &chainIDBackend{chainID: big.NewInt(1)})
+	require.NoError(t, err)
+	require.NotNil(t, ur)
+}
+
 // mainnetClient connects to a public Ethereum mainnet RPC. The endpoint can
 // be overridden with GO_ENS_TEST_RPC; without an override the test falls
 // back to a public endpoint so that `go test` works out of the box.

@@ -43,8 +43,9 @@ var knownURChains = map[uint64]struct{}{
 	17000:    {}, // Holesky testnet
 }
 
-// UnknownChainError is returned by NewUniversalResolver when the backend
-// reports a chain ID without a known UR deployment at the canonical address.
+// UnknownChainError is returned by NewUniversalResolver and
+// NewUniversalResolverContext when the backend reports a chain ID without a
+// known UR deployment at the canonical address.
 type UnknownChainError struct {
 	ChainID *big.Int
 }
@@ -70,15 +71,30 @@ type UniversalResolver struct {
 // deployed and returns *UnknownChainError otherwise. Backends that don't
 // expose a chain ID skip the check and the canonical address is used as-is —
 // callers on devnets / forks / alt-L1s should prefer NewUniversalResolverAt.
+//
+// The chain-ID probe uses a background context, so a caller-supplied context
+// cannot cancel it. Use NewUniversalResolverContext when the caller needs to
+// propagate cancellation / deadlines into the probe (e.g. via ResolveContext
+// or ReverseResolveContext).
 func NewUniversalResolver(backend bind.ContractBackend) (*UniversalResolver, error) {
+	return NewUniversalResolverContext(context.Background(), backend)
+}
+
+// NewUniversalResolverContext is identical to NewUniversalResolver but honours
+// ctx for the chain-ID probe: if ctx is cancelled before the backend reports
+// its chain ID, the probe returns ctx.Err() instead of *UnknownChainError.
+func NewUniversalResolverContext(ctx context.Context, backend bind.ContractBackend) (*UniversalResolver, error) {
 	if cid, ok := backend.(interface {
 		ChainID(context.Context) (*big.Int, error)
 	}); ok {
-		chainID, err := cid.ChainID(context.Background())
+		chainID, err := cid.ChainID(ctx)
 		if err == nil && chainID != nil {
 			if _, known := knownURChains[chainID.Uint64()]; !known {
 				return nil, &UnknownChainError{ChainID: chainID}
 			}
+		} else if err != nil && ctx.Err() != nil {
+			// Surface ctx cancellation/deadline from the probe itself.
+			return nil, ctx.Err()
 		}
 	}
 	return NewUniversalResolverAt(backend, common.HexToAddress(UniversalResolverContractAddress))
