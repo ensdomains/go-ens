@@ -125,9 +125,7 @@ func TestDNSEncode_DoubleDotInMiddle(t *testing.T) {
 // byte are reserved for compression-pointer flags, so a 64+ byte label cannot
 // be encoded validly.
 //
-// The current implementation uses a 255-byte cap (matching its doc comment).
-// The "RFC-correct" tests below intentionally fail against the current code
-// to drive the fix.
+// The current implementation uses a 63-byte cap.
 // ---------------------------------------------------------------------------
 
 func TestDNSEncode_Label63Bytes(t *testing.T) {
@@ -138,22 +136,19 @@ func TestDNSEncode_Label63Bytes(t *testing.T) {
 	assert.Equal(t, label, string(out[1:64]))
 }
 
-// EXPECTED TO FAIL against current code (bug A2: label cap is 255, not 63).
 func TestDNSEncode_Label64Bytes(t *testing.T) {
 	label := strings.Repeat("a", 64)
 	_, err := ens.DNSEncode(label + ".eth")
 	require.Error(t, err, "labels above 63 bytes are invalid per RFC 1035 §3.1")
 }
 
-// EXPECTED TO FAIL against current code (bug A2). 255 is the cap the current
-// implementation enforces, so this asserts the RFC-correct behavior.
 func TestDNSEncode_Label255Bytes(t *testing.T) {
 	label := strings.Repeat("a", 255)
 	_, err := ens.DNSEncode(label + ".eth")
 	require.Error(t, err, "labels above 63 bytes are invalid per RFC 1035 §3.1")
 }
 
-// 256-byte label is rejected by the current code's `> 255` check.
+// 256-byte label is rejected by the implementation's `> 63` check.
 func TestDNSEncode_Label256Bytes(t *testing.T) {
 	label := strings.Repeat("a", 256)
 	_, err := ens.DNSEncode(label + ".eth")
