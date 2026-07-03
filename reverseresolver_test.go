@@ -15,12 +15,13 @@
 package ens_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/stretchr/testify/require"
-	ens "github.com/wealdtech/go-ens/v3"
+	ens "github.com/wealdtech/go-ens/v4"
 )
 
 // TestReverseResolve tests the reverse resolution functionality.
@@ -55,7 +56,7 @@ func TestReverseResolve(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			res, err := ens.ReverseResolve(client, test.address)
+			res, err := ens.ReverseResolve(context.Background(), client, test.address)
 			if test.err != "" {
 				require.EqualError(t, err, test.err)
 			} else {

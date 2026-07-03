@@ -15,6 +15,7 @@
 package ens
 
 import (
+	"context"
 	"crypto/rand"
 	"errors"
 	"fmt"
@@ -296,18 +297,23 @@ func (n *Name) SetResolverAddress(address common.Address, opts *bind.TransactOpt
 // Address fetches the address of the name for a given coin type.
 // Coin types are defined at https://github.com/satoshilabs/slips/blob/master/slip-0044.md
 //
-// Note: this calls the resolver contract directly via the legacy registry
-// walk, so it does NOT support ENSIP-10 wildcard resolution or ERC-3668
-// CCIP-Read. Names whose addresses live off-chain or on an L2 will return
-// nil or an error here. For wildcard- and CCIP-Read-aware resolution, use
-// ens.Resolve / UniversalResolver.ResolveAddress for coin type 60 (ETH);
-// a UR-routed multicoin read is tracked as a follow-up.
-func (n *Name) Address(coinType uint64) ([]byte, error) {
-	resolver, err := NewResolver(n.backend, n.Name)
+// Resolution is delegated to the UniversalResolver, so it follows ENSIP-10
+// wildcard resolution and ERC-3668 CCIP-Read and returns the same answer as
+// ens.Resolve for coin type 60. ctx is honoured for cancellation and deadline
+// propagation.
+func (n *Name) Address(ctx context.Context, coinType uint64) ([]byte, error) {
+	ur, err := NewUniversalResolver(ctx, n.backend)
 	if err != nil {
 		return nil, err
 	}
-	return resolver.MultiAddress(coinType)
+	if coinType == CoinTypeETH {
+		addr, err := ur.ResolveAddress(ctx, n.Name)
+		if err != nil {
+			return nil, err
+		}
+		return addr.Bytes(), nil
+	}
+	return ur.MultiAddress(ctx, n.Name, coinType)
 }
 
 // SetAddress sets the address of the name for a given coin type.

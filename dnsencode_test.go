@@ -14,7 +14,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	ens "github.com/wealdtech/go-ens/v3"
+	ens "github.com/wealdtech/go-ens/v4"
 )
 
 // ---------------------------------------------------------------------------

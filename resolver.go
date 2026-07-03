@@ -26,7 +26,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/wealdtech/go-ens/v3/contracts/resolver"
+	"github.com/wealdtech/go-ens/v4/contracts/resolver"
 )
 
 // UnknownAddress is the address to which unknown entries resolve.
@@ -91,17 +91,18 @@ func NewResolverAt(backend bind.ContractBackend, domain string, address common.A
 }
 
 // PublicResolverAddress obtains the address of the public resolver for a chain.
-func PublicResolverAddress(backend bind.ContractBackend) (common.Address, error) {
-	return Resolve(backend, "resolver.eth")
+func PublicResolverAddress(ctx context.Context, backend bind.ContractBackend) (common.Address, error) {
+	return Resolve(ctx, backend, "resolver.eth")
 }
 
 // Address returns the Ethereum address of the domain.
 //
-// Note: this calls the resolver contract directly via the legacy registry
-// walk, so it does NOT support ENSIP-10 wildcard resolution or ERC-3668
-// CCIP-Read. Names whose addresses live off-chain or on an L2 will return
-// the zero address or an error here. For wildcard- and CCIP-Read-aware
-// resolution, use ens.Resolve / UniversalResolver.ResolveAddress instead.
+// This reads the addr(bytes32) record directly from the resolver contract this
+// Resolver is bound to (located via the registry when the Resolver was
+// created). It does NOT perform ENSIP-10 wildcard resolution or follow ERC-3668
+// CCIP-Read, so names whose addresses live off-chain or on an L2 return the
+// zero address or a raw revert error here. For wildcard- and CCIP-Read-aware
+// resolution use Resolve or UniversalResolver.ResolveAddress instead.
 func (r *Resolver) Address() (common.Address, error) {
 	nameHash, err := NameHash(r.domain)
 	if err != nil {
@@ -185,27 +186,23 @@ func (r *Resolver) InterfaceImplementer(interfaceID [4]byte) (common.Address, er
 	return r.Contract.InterfaceImplementer(nil, nameHash, interfaceID)
 }
 
-// Resolve resolves an ENS name in to an Ethereum address. Resolution flows
-// through the ENS UniversalResolver, which means CCIP-Read (ERC-3668) is
-// followed transparently — names backed by offchain or L2 data resolve the
-// same way as fully on-chain names. An input that contains no dot is treated
-// as a literal hex address.
+// Resolve resolves an ENS name into an Ethereum address, or parses input
+// directly if it is already a hex address.
 //
-// This will return an error if the name is not found or otherwise resolves
-// to the zero address.
+// If input contains a dot it is treated as an ENS name and resolved through
+// the ENS UniversalResolver, so ENSIP-10 wildcard resolution and ERC-3668
+// CCIP-Read are followed transparently — names backed by offchain or L2 data
+// resolve the same way as fully on-chain names. If input contains no dot it is
+// treated as a literal hex address and returned after validation, without any
+// on-chain lookup.
 //
-// Resolve uses a background context, so callers cannot cancel a slow
-// CCIP-Read hop or propagate an HTTP-handler deadline. Use ResolveContext
-// when either is needed.
-func Resolve(backend bind.ContractBackend, input string) (common.Address, error) {
-	return ResolveContext(context.Background(), backend, input)
-}
-
-// ResolveContext is identical to Resolve but honours ctx for cancellation
-// and deadline propagation. The context flows through CCIP-Read hops, so a
-// caller that sets a per-request deadline can cap the total resolution
-// time end-to-end.
-func ResolveContext(ctx context.Context, backend bind.ContractBackend, input string) (common.Address, error) {
+// ctx is honoured for cancellation and deadline propagation, flowing through
+// the CCIP-Read hops, so a caller that sets a per-request deadline can cap the
+// total resolution time end-to-end.
+//
+// It returns an error if the name is not found or otherwise resolves to the
+// zero address.
+func Resolve(ctx context.Context, backend bind.ContractBackend, input string) (common.Address, error) {
 	if strings.Contains(input, ".") {
 		return resolveName(ctx, backend, input)
 	}
@@ -224,7 +221,7 @@ func resolveName(ctx context.Context, backend bind.ContractBackend, input string
 	if _, err := NameHash(input); err != nil {
 		return UnknownAddress, err
 	}
-	ur, err := NewUniversalResolverContext(ctx, backend)
+	ur, err := NewUniversalResolver(ctx, backend)
 	if err != nil {
 		return UnknownAddress, err
 	}

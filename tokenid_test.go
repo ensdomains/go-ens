@@ -1,6 +1,7 @@
 package ens
 
 import (
+	"context"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -39,7 +40,7 @@ func TestDeriveTokenId(t *testing.T) {
 	require.NoError(t, err)
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actual, err := DeriveTokenID(client, test.input)
+			actual, err := DeriveTokenID(context.Background(), client, test.input)
 			if test.err != "" {
 				require.EqualError(t, err, test.err)
 			} else {

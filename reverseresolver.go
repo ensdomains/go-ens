@@ -21,7 +21,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/wealdtech/go-ens/v3/contracts/reverseresolver"
+	"github.com/wealdtech/go-ens/v4/contracts/reverseresolver"
 )
 
 // ReverseResolver is the structure for the reverse resolver contract.
@@ -96,8 +96,8 @@ func (r *ReverseResolver) Name(address common.Address) (string, error) {
 }
 
 // Format provides a string version of an address, reverse resolving it if possible.
-func Format(backend bind.ContractBackend, address common.Address) string {
-	result, err := ReverseResolve(backend, address)
+func Format(ctx context.Context, backend bind.ContractBackend, address common.Address) string {
+	result, err := ReverseResolve(ctx, backend, address)
 	if err != nil {
 		result = address.Hex()
 	}
@@ -105,22 +105,16 @@ func Format(backend bind.ContractBackend, address common.Address) string {
 }
 
 // ReverseResolve resolves an address in to an ENS name. Resolution flows
-// through the ENS UniversalResolver, so CCIP-Read (ERC-3668) is handled
-// transparently and reverse records stored offchain or on an L2 resolve the
-// same way as fully on-chain reverse records.
+// through the ENS UniversalResolver, so ENSIP-10 wildcard resolution and
+// ERC-3668 CCIP-Read are handled transparently and reverse records stored
+// offchain or on an L2 resolve the same way as fully on-chain reverse records.
+//
+// ctx is honoured for cancellation and deadline propagation through the
+// CCIP-Read hops.
 //
 // This will return an error if no primary name is set for the address.
-//
-// ReverseResolve uses a background context. Use ReverseResolveContext to
-// propagate cancellation and deadlines through CCIP-Read hops.
-func ReverseResolve(backend bind.ContractBackend, address common.Address) (string, error) {
-	return ReverseResolveContext(context.Background(), backend, address)
-}
-
-// ReverseResolveContext is identical to ReverseResolve but honours ctx for
-// cancellation and deadline propagation.
-func ReverseResolveContext(ctx context.Context, backend bind.ContractBackend, address common.Address) (string, error) {
-	ur, err := NewUniversalResolverContext(ctx, backend)
+func ReverseResolve(ctx context.Context, backend bind.ContractBackend, address common.Address) (string, error) {
+	ur, err := NewUniversalResolver(ctx, backend)
 	if err != nil {
 		return "", err
 	}

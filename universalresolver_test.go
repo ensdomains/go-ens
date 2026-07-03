@@ -19,7 +19,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/stretchr/testify/require"
-	ens "github.com/wealdtech/go-ens/v3"
+	ens "github.com/wealdtech/go-ens/v4"
 )
 
 // chainIDBackend embeds a nil ContractBackend and overrides ChainID, so the
@@ -35,30 +35,30 @@ func (b *chainIDBackend) ChainID(_ context.Context) (*big.Int, error) {
 }
 
 func TestNewUniversalResolver_AcceptsMainnet(t *testing.T) {
-	ur, err := ens.NewUniversalResolver(&chainIDBackend{chainID: big.NewInt(1)})
+	ur, err := ens.NewUniversalResolver(context.Background(), &chainIDBackend{chainID: big.NewInt(1)})
 	require.NoError(t, err)
 	require.NotNil(t, ur)
 }
 
 func TestNewUniversalResolver_AcceptsSepolia(t *testing.T) {
-	ur, err := ens.NewUniversalResolver(&chainIDBackend{chainID: big.NewInt(11155111)})
+	ur, err := ens.NewUniversalResolver(context.Background(), &chainIDBackend{chainID: big.NewInt(11155111)})
 	require.NoError(t, err)
 	require.NotNil(t, ur)
 }
 
 func TestNewUniversalResolver_AcceptsHolesky(t *testing.T) {
-	ur, err := ens.NewUniversalResolver(&chainIDBackend{chainID: big.NewInt(17000)})
+	ur, err := ens.NewUniversalResolver(context.Background(), &chainIDBackend{chainID: big.NewInt(17000)})
 	require.NoError(t, err)
 	require.NotNil(t, ur)
 }
 
 func TestNewUniversalResolver_RejectsUnknownChain(t *testing.T) {
-	_, err := ens.NewUniversalResolver(&chainIDBackend{chainID: big.NewInt(8453)}) // Base
+	_, err := ens.NewUniversalResolver(context.Background(), &chainIDBackend{chainID: big.NewInt(8453)}) // Base
 	require.Error(t, err)
 	var typed *ens.UnknownChainError
 	require.ErrorAs(t, err, &typed)
 	require.Equal(t, int64(8453), typed.ChainID.Int64())
-	require.Contains(t, err.Error(), "NewUniversalResolverAt")
+	require.Contains(t, err.Error(), "WithAddress")
 }
 
 // NewUniversalResolverAt skips the chain-ID check by design — useful for
@@ -66,7 +66,7 @@ func TestNewUniversalResolver_RejectsUnknownChain(t *testing.T) {
 // address.
 func TestNewUniversalResolverAt_AcceptsAnyChain(t *testing.T) {
 	custom := common.HexToAddress("0x000000000000000000000000000000000000bEEF")
-	ur, err := ens.NewUniversalResolverAt(&chainIDBackend{chainID: big.NewInt(8453)}, custom)
+	ur, err := ens.NewUniversalResolver(context.Background(), &chainIDBackend{chainID: big.NewInt(8453)}, ens.WithAddress(custom))
 	require.NoError(t, err)
 	require.Equal(t, custom, ur.Address())
 }
@@ -101,7 +101,7 @@ func TestNewUniversalResolverContext_PropagatesCancellation(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	_, err := ens.NewUniversalResolverContext(ctx, backend)
+	_, err := ens.NewUniversalResolver(ctx, backend)
 	require.ErrorIs(t, err, context.Canceled,
 		"a cancelled ctx must surface as context.Canceled from the chain-ID probe")
 }
@@ -116,7 +116,7 @@ func TestNewUniversalResolverContext_HonoursDeadline(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 0)
 	defer cancel()
 
-	_, err := ens.NewUniversalResolverContext(ctx, backend)
+	_, err := ens.NewUniversalResolver(ctx, backend)
 	require.ErrorIs(t, err, context.DeadlineExceeded,
 		"an expired deadline must surface as context.DeadlineExceeded from the chain-ID probe")
 }
@@ -124,7 +124,7 @@ func TestNewUniversalResolverContext_HonoursDeadline(t *testing.T) {
 // TestNewUniversalResolverContext_AcceptsKnownChain ensures the context-aware
 // constructor still returns a usable resolver on the happy path.
 func TestNewUniversalResolverContext_AcceptsKnownChain(t *testing.T) {
-	ur, err := ens.NewUniversalResolverContext(context.Background(), &chainIDBackend{chainID: big.NewInt(1)})
+	ur, err := ens.NewUniversalResolver(context.Background(), &chainIDBackend{chainID: big.NewInt(1)})
 	require.NoError(t, err)
 	require.NotNil(t, ur)
 }
@@ -163,7 +163,7 @@ func TestUniversalResolverIntegrationName(t *testing.T) {
 	)
 	client := mainnetClient(t)
 
-	addr, err := ens.Resolve(client, name)
+	addr, err := ens.Resolve(context.Background(), client, name)
 	require.NoError(t, err, "Resolve(%s) failed", name)
 
 	got := strings.ToLower(addr.Hex())
@@ -183,7 +183,7 @@ func TestUniversalResolverCCIPRead(t *testing.T) {
 	)
 	client := mainnetClient(t)
 
-	addr, err := ens.Resolve(client, name)
+	addr, err := ens.Resolve(context.Background(), client, name)
 	require.NoError(t, err, "Resolve(%s) failed", name)
 	require.Equal(t, strings.ToLower(expected), strings.ToLower(addr.Hex()))
 }
@@ -193,7 +193,7 @@ func TestUniversalResolverCCIPRead(t *testing.T) {
 // produces the same result as the top-level Resolve entrypoint.
 func TestUniversalResolverDirectResolve(t *testing.T) {
 	client := mainnetClient(t)
-	ur, err := ens.NewUniversalResolver(client)
+	ur, err := ens.NewUniversalResolver(context.Background(), client)
 	require.NoError(t, err)
 
 	addr, err := ur.ResolveAddress(context.Background(), "ur.integration-tests.eth")
