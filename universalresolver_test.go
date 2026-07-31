@@ -11,13 +11,11 @@ package ens_test
 import (
 	"context"
 	"math/big"
-	"os"
 	"strings"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/stretchr/testify/require"
 	ens "github.com/wealdtech/go-ens/v4"
 )
@@ -127,28 +125,6 @@ func TestNewUniversalResolverContext_AcceptsKnownChain(t *testing.T) {
 	ur, err := ens.NewUniversalResolver(context.Background(), &chainIDBackend{chainID: big.NewInt(1)})
 	require.NoError(t, err)
 	require.NotNil(t, ur)
-}
-
-// mainnetClient connects to a public Ethereum mainnet RPC. The endpoint can
-// be overridden with GO_ENS_TEST_RPC; without an override the test falls
-// back to a public endpoint so that `go test` works out of the box.
-//
-// Live-RPC tests skip themselves under `go test -short`, so CI runs that
-// can't reach the network (or that are rate-limited) keep working.
-func mainnetClient(t *testing.T) *ethclient.Client {
-	t.Helper()
-	if testing.Short() {
-		t.Skip("skipping live-RPC test under -short")
-	}
-	url := os.Getenv("GO_ENS_TEST_RPC")
-	if url == "" {
-		// Public mainnet RPC. Surfaces revert data via the JSON-RPC `data`
-		// field, which is required for CCIP-Read.
-		url = "https://ethereum.publicnode.com"
-	}
-	client, err := ethclient.Dial(url)
-	require.NoError(t, err, "failed to dial %s", url)
-	return client
 }
 
 // TestUniversalResolverIntegrationName is the canonical ENSv2 readiness
