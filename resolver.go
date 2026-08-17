@@ -260,7 +260,9 @@ func (r *Resolver) SetABI(opts *bind.TransactOpts, _ string, abi string, content
 		if _, err := w.Write([]byte(abi)); err != nil {
 			return nil, err
 		}
-		w.Close()
+		if err := w.Close(); err != nil {
+			return nil, err
+		}
 		data = b.Bytes()
 	default:
 		return nil, errors.New("unsupported content type")

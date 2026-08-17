@@ -131,9 +131,9 @@ func Call(ctx context.Context, backend Caller, to common.Address, data []byte, o
 	if opts == nil {
 		opts = &Options{}
 	}
-	max := opts.MaxRedirects
-	if max <= 0 {
-		max = MaxRedirects
+	maxHops := opts.MaxRedirects
+	if maxHops <= 0 {
+		maxHops = MaxRedirects
 	}
 	httpClient := opts.HTTPClient
 	if httpClient == nil {
@@ -148,7 +148,7 @@ func Call(ctx context.Context, backend Caller, to common.Address, data []byte, o
 
 	target := to
 	callData := data
-	for hop := 0; hop < max; hop++ {
+	for hop := 0; hop < maxHops; hop++ {
 		out, callErr := backend.CallContract(ctx, ethereum.CallMsg{To: &target, Data: callData}, opts.BlockNumber)
 		if callErr == nil {
 			return out, nil
@@ -174,7 +174,7 @@ func Call(ctx context.Context, backend Caller, to common.Address, data []byte, o
 		// target stays the same: the callback lives on `sender`, which we just
 		// validated equals the previous target.
 	}
-	return nil, fmt.Errorf("ccipread: exceeded %d OffchainLookup redirects", max)
+	return nil, fmt.Errorf("ccipread: exceeded %d OffchainLookup redirects", maxHops)
 }
 
 // DecodeOffchainLookup parses an OffchainLookup revert from raw revert bytes
