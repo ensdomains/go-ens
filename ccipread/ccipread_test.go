@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/wealdtech/go-ens/v4/ccipread"
+	"github.com/ensdomains/go-ens/v4/ccipread"
 )
 
 // ---------------------------------------------------------------------------
@@ -37,9 +37,9 @@ type mockRevertErr struct {
 	data string
 }
 
-func (e *mockRevertErr) Error() string             { return "execution reverted" }
-func (e *mockRevertErr) ErrorData() interface{}    { return e.data }
-func (e *mockRevertErr) Unwrap() error             { return nil }
+func (e *mockRevertErr) Error() string          { return "execution reverted" }
+func (e *mockRevertErr) ErrorData() interface{} { return e.data }
+func (e *mockRevertErr) Unwrap() error          { return nil }
 
 // loopBackend is a bind.ContractCaller that always returns the same revert
 // error. It records how many CallContract calls it received.
@@ -285,4 +285,3 @@ func (b *succeedAfterOneRevert) CallContract(_ context.Context, _ ethereum.CallM
 func (b *succeedAfterOneRevert) CodeAt(_ context.Context, _ common.Address, _ *big.Int) ([]byte, error) {
 	return nil, nil
 }
-

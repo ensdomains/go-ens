@@ -1,4 +1,4 @@
-module github.com/wealdtech/go-ens/v4
+module github.com/ensdomains/go-ens/v4
 
 go 1.22.4
 

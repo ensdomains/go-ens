@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/ensdomains/go-ens/v4/contracts/baseregistrar"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/wealdtech/go-ens/v4/contracts/baseregistrar"
 	"golang.org/x/crypto/sha3"
 )
 

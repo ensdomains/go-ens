@@ -12,9 +12,9 @@ import (
 	"strings"
 	"testing"
 
+	ens "github.com/ensdomains/go-ens/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	ens "github.com/wealdtech/go-ens/v4"
 )
 
 // ---------------------------------------------------------------------------

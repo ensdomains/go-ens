@@ -35,8 +35,8 @@ type ResolverNotFoundError struct {
 	DNSName []byte
 }
 
-func (e *ResolverNotFoundError) Error() string  { return "unregistered name" }
-func (e *ResolverNotFoundError) Unwrap() error  { return ErrUnregistered }
+func (e *ResolverNotFoundError) Error() string { return "unregistered name" }
+func (e *ResolverNotFoundError) Unwrap() error { return ErrUnregistered }
 
 // ResolverNotContractError corresponds to `ResolverNotContract(bytes,address)`:
 // the registry pointed at an address that holds no code.
@@ -102,23 +102,23 @@ func (e *ReverseAddressMismatchError) Error() string {
 
 // Custom-error selectors. Computed at init from the canonical signatures.
 var (
-	selResolverNotFound          [4]byte
-	selResolverNotContract       [4]byte
+	selResolverNotFound           [4]byte
+	selResolverNotContract        [4]byte
 	selUnsupportedResolverProfile [4]byte
-	selResolverError             [4]byte
-	selEmptyAddress              [4]byte
-	selHTTPError                 [4]byte
-	selReverseAddressMismatch    [4]byte
+	selResolverError              [4]byte
+	selEmptyAddress               [4]byte
+	selHTTPError                  [4]byte
+	selReverseAddressMismatch     [4]byte
 )
 
 // Argument lists for decoding error payloads.
 var (
-	argsResolverNotFound          abi.Arguments
-	argsResolverNotContract       abi.Arguments
+	argsResolverNotFound           abi.Arguments
+	argsResolverNotContract        abi.Arguments
 	argsUnsupportedResolverProfile abi.Arguments
-	argsResolverError             abi.Arguments
-	argsHTTPError                 abi.Arguments
-	argsReverseAddressMismatch    abi.Arguments
+	argsResolverError              abi.Arguments
+	argsHTTPError                  abi.Arguments
+	argsReverseAddressMismatch     abi.Arguments
 )
 
 func init() {

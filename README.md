@@ -1,13 +1,14 @@
 # go-ens
 
-[![Tag](https://img.shields.io/github/tag/wealdtech/go-ens.svg)](https://github.com/wealdtech/go-ens/releases/)
-[![License](https://img.shields.io/github/license/wealdtech/go-ens.svg)](LICENSE)
-[![GoDoc](https://pkg.go.dev/badge/github.com/wealdtech/go-ens/v4.svg)](https://pkg.go.dev/github.com/wealdtech/go-ens/v4)
-[![Travis CI](https://img.shields.io/travis/wealdtech/go-ens.svg)](https://travis-ci.org/wealdtech/go-ens)
-[![codecov.io](https://img.shields.io/codecov/c/github/wealdtech/go-ens.svg)](https://codecov.io/github/wealdtech/go-ens)
-[![Go Report Card](https://goreportcard.com/badge/github.com/wealdtech/go-ens)](https://goreportcard.com/report/github.com/wealdtech/go-ens)
+[![Tag](https://img.shields.io/github/tag/ensdomains/go-ens.svg)](https://github.com/ensdomains/go-ens/releases/)
+[![License](https://img.shields.io/github/license/ensdomains/go-ens.svg)](LICENSE)
+[![GoDoc](https://pkg.go.dev/badge/github.com/ensdomains/go-ens/v4.svg)](https://pkg.go.dev/github.com/ensdomains/go-ens/v4)
+[![Test](https://github.com/ensdomains/go-ens/actions/workflows/test.yml/badge.svg)](https://github.com/ensdomains/go-ens/actions/workflows/test.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ensdomains/go-ens)](https://goreportcard.com/report/github.com/ensdomains/go-ens)
 
 Go module to simplify interacting with the [Ethereum Name Service](https://ens.domains/) contracts.
+
+This is the ENS Go library. It is the continuation of [`wealdtech/go-ens`](https://github.com/wealdtech/go-ens); install and import `github.com/ensdomains/go-ens/v4` rather than `github.com/wealdtech/go-ens/v4`.
 
 v4 resolves names through the ENS [Universal Resolver](https://docs.ens.domains/web/ensv2-readiness/), so ENSIP-10 wildcards and ERC-3668 CCIP-Read work out of the box. Callers that need the previous registry-walking behaviour should stay on `github.com/wealdtech/go-ens/v3`.
 
@@ -25,7 +26,7 @@ v4 resolves names through the ENS [Universal Resolver](https://docs.ens.domains/
 `go-ens` is a standard Go module which can be installed with:
 
 ```sh
-go get github.com/wealdtech/go-ens/v4
+go get github.com/ensdomains/go-ens/v4
 ```
 
 ## Usage
@@ -96,7 +97,7 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/ethclient"
-	ens "github.com/wealdtech/go-ens/v4"
+	ens "github.com/ensdomains/go-ens/v4"
 )
 
 func main() {
@@ -128,11 +129,13 @@ func main() {
 
 ## Maintainers
 
-Jim McDonald: [@mcdee](https://github.com/mcdee).
+[ENS](https://github.com/ensdomains).
+
+Originally written by Jim McDonald ([@mcdee](https://github.com/mcdee)) at Weald Technology.
 
 ## Contribute
 
-Contributions welcome. Please check out [the issues](https://github.com/wealdtech/go-ens/issues).
+Contributions welcome. Please check out [the issues](https://github.com/ensdomains/go-ens/issues).
 
 ## License
 

@@ -15,11 +15,11 @@ import (
 	"math/big"
 	"net/http"
 
+	"github.com/ensdomains/go-ens/v4/ccipread"
+	"github.com/ensdomains/go-ens/v4/contracts/universalresolver"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/wealdtech/go-ens/v4/ccipread"
-	"github.com/wealdtech/go-ens/v4/contracts/universalresolver"
 )
 
 // UniversalResolverContractAddress is the proxy address of the ENS

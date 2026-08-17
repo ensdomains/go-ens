@@ -18,9 +18,9 @@ import (
 	"context"
 	"testing"
 
+	ens "github.com/ensdomains/go-ens/v4"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
-	ens "github.com/wealdtech/go-ens/v4"
 )
 
 // TestReverseResolve tests the reverse resolution functionality.

@@ -13,8 +13,8 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/ensdomains/go-ens/v4/contracts/resolver"
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/wealdtech/go-ens/v4/contracts/resolver"
 )
 
 // resolverABI is the ABI of the legacy PublicResolver, used to pack the

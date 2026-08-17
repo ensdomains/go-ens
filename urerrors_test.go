@@ -25,8 +25,8 @@ type fakeRPCErr struct {
 	data string
 }
 
-func (e *fakeRPCErr) Error() string             { return e.msg }
-func (e *fakeRPCErr) ErrorData() interface{}    { return e.data }
+func (e *fakeRPCErr) Error() string          { return e.msg }
+func (e *fakeRPCErr) ErrorData() interface{} { return e.data }
 
 // build a revert payload by concatenating selector + abi-encoded body.
 func revert(t *testing.T, sel [4]byte, args ...byte) string {
@@ -156,7 +156,9 @@ func TestTranslateURRevert_NonRPCError(t *testing.T) {
 
 // mustPackArgs is a tiny test helper: pack args with the given Arguments
 // definition or fail the test.
-func mustPackArgs(t *testing.T, args interface{ Pack(...interface{}) ([]byte, error) }, vals ...interface{}) []byte {
+func mustPackArgs(t *testing.T, args interface {
+	Pack(...interface{}) ([]byte, error)
+}, vals ...interface{}) []byte {
 	t.Helper()
 	out, err := args.Pack(vals...)
 	require.NoError(t, err)

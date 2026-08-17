@@ -14,10 +14,10 @@ import (
 	"strings"
 	"testing"
 
+	ens "github.com/ensdomains/go-ens/v4"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
-	ens "github.com/wealdtech/go-ens/v4"
 )
 
 // chainIDBackend embeds a nil ContractBackend and overrides ChainID, so the
