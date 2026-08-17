@@ -10,13 +10,15 @@ Go module to simplify interacting with the [Ethereum Name Service](https://ens.d
 
 This is the ENS Go library. It is the continuation of [`wealdtech/go-ens`](https://github.com/wealdtech/go-ens); install and import `github.com/ensdomains/go-ens/v4` rather than `github.com/wealdtech/go-ens/v3`.
 
-v4 resolves names through the ENS [Universal Resolver](https://docs.ens.domains/web/ensv2-readiness/), so ENSIP-10 wildcards and ERC-3668 CCIP-Read work out of the box. Callers that need the previous registry-walking behaviour should stay on `github.com/wealdtech/go-ens/v3`.
+v4 resolves names through the ENS [Universal Resolver](https://docs.ens.domains/web/ensv2-readiness/), so ENSIP-10 wildcards and ERC-3668 CCIP-Read work out of the box. Callers that need the previous registry-walking behaviour should stay on `github.com/wealdtech/go-ens/v3`. Upgrading from v3: [MIGRATION.md](MIGRATION.md). Full history: [CHANGELOG.md](CHANGELOG.md).
 
 
 ## Table of Contents
 
 - [Install](#install)
 - [Usage](#usage)
+- [Migrating from v3](MIGRATION.md)
+- [Changelog](CHANGELOG.md)
 - [Maintainers](#maintainers)
 - [Contribute](#contribute)
 - [License](#license)
