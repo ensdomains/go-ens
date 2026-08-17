@@ -8,7 +8,7 @@
 
 Go module to simplify interacting with the [Ethereum Name Service](https://ens.domains/) contracts.
 
-This is the ENS Go library. It is the continuation of [`wealdtech/go-ens`](https://github.com/wealdtech/go-ens); install and import `github.com/ensdomains/go-ens/v4` rather than `github.com/wealdtech/go-ens/v4`.
+This is the ENS Go library. It is the continuation of [`wealdtech/go-ens`](https://github.com/wealdtech/go-ens); install and import `github.com/ensdomains/go-ens/v4` rather than `github.com/wealdtech/go-ens/v3`.
 
 v4 resolves names through the ENS [Universal Resolver](https://docs.ens.domains/web/ensv2-readiness/), so ENSIP-10 wildcards and ERC-3668 CCIP-Read work out of the box. Callers that need the previous registry-walking behaviour should stay on `github.com/wealdtech/go-ens/v3`.
 
@@ -57,6 +57,7 @@ fmt.Printf("The address is %s\n", ens.Format(ctx, client, address))
 
 This will carry out reverse resolution of the address and print the name if present; if not it will print a formatted version of the address.
 
+`ens.Resolve`, `ens.ReverseResolve`, `ens.Format`, and `Name.Address` all go through the Universal Resolver, so ENSIP-10 wildcards and ERC-3668 CCIP-Read names resolve the same way as on-chain names. `Resolver` read methods (`Address`, `Text`, `Contenthash`, `MultiAddress`) call the specific resolver contract that `Resolver` is bound to and do **not** follow wildcards or CCIP-Read. For those names use `ens.Resolve` (or `UniversalResolver`); keep `Resolver` for writes (`SetAddress`, `SetText`, and so on) and for reading a resolver you already hold.
 
 ### Management of names
 
@@ -75,6 +76,8 @@ Addresses can be set and obtained using the address functions, for example to ge
 COIN_TYPE_ETHEREUM := uint64(60)
 address, err := name.Address(ctx, COIN_TYPE_ETHEREUM)
 ```
+
+`Name.Address` uses the Universal Resolver (same answer as `ens.Resolve` for coin type 60). The `Resolver.Address` method does not — see the note under [Resolution](#resolution).
 
 ENS supports addresses for multiple coin types; values of coin types can be found at https://github.com/satoshilabs/slips/blob/master/slip-0044.md
 
