@@ -18,9 +18,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common/math"
 )
 
 // DeriveTokenID derive tokenID from the ENS domain.
@@ -48,9 +48,9 @@ func DeriveTokenID(ctx context.Context, backend bind.ContractBackend, domain str
 		return "", err
 	}
 	hash := fmt.Sprintf("%#x", labelHash)
-	tokenID, ok := math.ParseBig256(hash)
+	tokenID, ok := new(big.Int).SetString(hash, 0)
 	if !ok {
-		return "", err
+		return "", errors.New("failed to parse token ID")
 	}
 	return tokenID.String(), nil
 }
