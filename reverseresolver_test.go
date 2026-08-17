@@ -45,8 +45,8 @@ func TestReverseResolve(t *testing.T) {
 		},
 		{
 			name:    "Exists",
-			address: common.HexToAddress("0x809FA673fe2ab515FaA168259cB14E2BeDeBF68e"),
-			res:     "avsa.eth",
+			address: common.HexToAddress("0x3AF5CFc7C7f29Da9d7758339b8eaB6a78550Cbed"),
+			res:     "ur-reverse.integration-tests.eth",
 		},
 	}
 
