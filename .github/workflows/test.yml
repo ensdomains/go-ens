@@ -13,3 +13,5 @@ jobs:
         with:
           go-version-file: go.mod
       - run: go test ./...
+        env:
+          GO_ENS_TEST_RPC: ${{ secrets.GO_ENS_TEST_RPC }}
