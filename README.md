@@ -4,7 +4,6 @@
 [![License](https://img.shields.io/github/license/ensdomains/go-ens.svg)](LICENSE)
 [![GoDoc](https://pkg.go.dev/badge/github.com/ensdomains/go-ens/v4.svg)](https://pkg.go.dev/github.com/ensdomains/go-ens/v4)
 [![Test](https://github.com/ensdomains/go-ens/actions/workflows/test.yml/badge.svg)](https://github.com/ensdomains/go-ens/actions/workflows/test.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/ensdomains/go-ens)](https://goreportcard.com/report/github.com/ensdomains/go-ens)
 
 Go module to simplify interacting with the [Ethereum Name Service](https://ens.domains/) contracts.
 
