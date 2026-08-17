@@ -24,7 +24,7 @@ import (
 
 // UniversalResolverContractAddress is the proxy address of the ENS
 // UniversalResolver. The same vanity address is used on Ethereum mainnet
-// and L1 testnets where the ENS DAO has deployed the proxy (Sepolia, Holesky).
+// and L1 testnets where the ENS DAO has deployed the proxy (Sepolia).
 const UniversalResolverContractAddress = "0xeEeEEEeE14D718C2B47D9923Deab1335E144EeEe"
 
 // CoinTypeETH is SLIP-0044 coin type 60: native Ethereum addresses.
@@ -41,7 +41,6 @@ var addrSelector = [4]byte{0x3b, 0x3b, 0x57, 0xde}
 var knownURChains = map[uint64]struct{}{
 	1:        {}, // Ethereum mainnet
 	11155111: {}, // Sepolia testnet
-	17000:    {}, // Holesky testnet
 }
 
 // UnknownChainError is returned by NewUniversalResolver when the backend
