@@ -27,7 +27,20 @@ import (
 // pStrict is the legacy IDNA "strict" profile, used only by
 // NormaliseDomainStrict for DNS-strict checks (no underscores, etc.). It is
 // NOT an ENSIP-15 normalizer — see Normalize / NormaliseDomain for that.
-var pStrict = idna.New(idna.MapForLookup(), idna.ValidateLabels(false), idna.CheckHyphens(false), idna.StrictDomainName(true), idna.Transitional(false))
+//
+// ValidateLabels must be enabled: with Unicode 16+ tables (Go 1.27+), x/net/idna
+// defers the STD3 and disallowed-rune checks to label validation, so without it
+// StrictDomainName is silently ignored. ValidateLabels also turns on
+// CheckJoiners and CheckHyphens, which are switched back off to keep the
+// behaviour of earlier toolchains.
+var pStrict = idna.New(
+	idna.MapForLookup(),
+	idna.ValidateLabels(true),
+	idna.CheckJoiners(false),
+	idna.CheckHyphens(false),
+	idna.StrictDomainName(true),
+	idna.Transitional(false),
+)
 
 // Normalize normalizes a name according to ENSIP-15. Empty labels, disallowed
 // codepoints, mixed-script confusables, and other ENSIP-15 violations return

@@ -67,6 +67,9 @@ func TestNormaliseDomainStrict(t *testing.T) {
 		{"*.wealdtech.eth", "*.wealdtech.eth", nil},
 		{"omg.thetoken.eth", "omg.thetoken.eth", nil},
 		{"_underscore.thetoken.eth", "", errors.New("idna: disallowed rune U+005F")},
+		{"a b.thetoken.eth", "", errors.New("idna: disallowed rune U+0020")},
+		{"a@b.thetoken.eth", "", errors.New("idna: disallowed rune U+0040")},
+		{"*._underscore.thetoken.eth", "", errors.New("idna: disallowed rune U+005F")},
 		{"點看.eth", "點看.eth", nil},
 	}
 
