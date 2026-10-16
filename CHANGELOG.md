@@ -5,7 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-This is the continuation of [`wealdtech/go-ens`](https://github.com/wealdtech/go-ens). The last v3 release in this repository is [v3.6.0](https://github.com/ensdomains/go-ens/releases/tag/v3.6.0) (`github.com/wealdtech/go-ens/v3`). v4 lives at `github.com/ensdomains/go-ens/v4`. A step-by-step upgrade is in [MIGRATION.md](MIGRATION.md).
+This is the continuation of [`wealdtech/go-ens`](https://github.com/wealdtech/go-ens). The last v3 release in this repository is [v3.6.0](https://github.com/ensdomains/go-ens/releases/tag/v3.6.0) (`github.com/wealdtech/go-ens/v3`). v4 lives at `github.com/ensdomains/go-ens/v4`, v5 at `github.com/ensdomains/go-ens/v5`. Step-by-step upgrades are in [MIGRATION.md](MIGRATION.md).
+
+## [5.0.0] - Unreleased
+
+ENS v2 support. The library now speaks the hierarchical v2 registries, the ERC-20 priced `ETHRegistrar`, `PermissionedResolver` and `UniversalResolverV2`, while keeping the v1 surface for names that have not migrated. See [docs/ensv2.md](docs/ensv2.md) for the model and [MIGRATION.md](MIGRATION.md) for the upgrade.
+
+This is a breaking major version relative to [v4.0.0](https://github.com/ensdomains/go-ens/releases/tag/v4.0.0).
+
+### Added
+
+- `ens.Client`: `NewClient(ctx, backend, opts...)` resolves the chain configuration once (`WithChainConfig`, `WithChainID`, `WithUniversalResolver`, `WithGatewayURLs`, `WithHTTPClient`, `WithMaxHops`) and exposes every version-agnostic read: `ResolveAddress`, `MultiAddress`, `HasAddr`, `Text`, `Contenthash`, `ContenthashString`, `PubKey`, `ABI`, `ABIJSON`, `InterfaceImplementer`, `NameRecord`, `Data`, batched `Records` (one `multicall` round trip), `Reverse`, `ReverseResolve`, `ReverseResolveCoin`, `Format`, `FormatCoin`, `FindResolver`, `WritableResolver`, `Owner`, `NearestOwner`, `MigrationStatus`, `IsENSv2`, `Send`, `Simulate`, `ExplainFailedTx`.
+- `ens.ChainConfig` with baked-in tables for Ethereum mainnet and Sepolia (`MainnetConfig`, `SepoliaConfig`, `ConfigForChain`), covering the v2 deployment, the v1 contracts still in use and the accepted payment tokens. A test pins every address to the vendored deployment artifacts.
+- `ens.Call`: every write in `v1` and `v2` has a `Build*` twin that returns the unsigned call for batching, multisigs or offline signing.
+- ENSIP-19 helpers: `CoinTypeDefault`, `EVMCoinType`, `IsEVMCoinType`, `ChainIDFromCoinType`, `ReverseName`; `DNSDecode`.
+- `ens.MigrationStatus` reports where a `.eth` name stands in the v1 to v2 migration (`V1Reserved`, `V1ReservedGrace`, `MigratedFromV1`, `NativeV2`, `V2Expired`, `Available`, `Unknown`) including the v1 owner, NameWrapper fuses and whether the name is locked.
+- Typed Universal Resolver errors for the v2 custom errors: `DNSDecodingFailedError`, `DNSEncodingFailedError`, `LabelIsEmptyError`, `LabelTooLongError`, `InvalidBatchGatewayResponseError`, `UnsafeBatchGatewayResponseError`, `OffsetOutOfBoundsError`, `NormalizationChangedNameError`, `PrimaryNameNotNormalizedError`; `ResolverRevertError` now unwraps to the decoded inner error. Sentinels `ErrUnsupportedProfile`, `ErrNoPrimaryName`, `ErrLabelTooLong`, `ErrEmptyLabel`, `ErrNotConfigured`, `ErrNot2LD`, `ErrNotENSv2`, and the registrar sentinels shared by `v1` and `v2`.
+- `v2` package: `Client`; `Registry` (reads, writes, roles, safe and unsafe transfers, events) for root, `.eth`, user and wrapper registries; `Registrar` (commit and reveal with a locally computed, contract-verified commitment hash, ERC-20 pricing, client-side pre-flight for the commitment window, availability, allowance and balance); `RenewerV1`, the `Renewer` interface and state-routed `Client.Renew` / `RenewBatch`; `Oracle`; `ERC20` with `CheckPayment`, `ApprovePayment`, `EnsureAllowance`, `FormatPrice`; `PermissionedResolver` (DNS-name keyed setters, `SetRecords`, `Multicall`, record linking, root and scoped roles); `PublicResolverV2`; `Factory` with `DeployPermissionedResolver` and `DeployUserRegistry`; `UniversalHelper`; `ReverseAdapters` and `SetPrimaryNameWithPermissionedResolver`; `PlanCreateSubname` / `ExecutePlan` / `CreateSubname`; a thin `Name` handle; `Role`, `Roles`, `SetterScope` and the registry and resolver role constants; `LabelID`, `CanonicalID`, `WithVersion`, `VersionOf`, `SameName`; `DecodeRevert` with typed errors for every registrar, registry, access-control, resolver, factory and adapter custom error.
+- `v1` package: `Client`, `NameWrapper` reads with a `Fuses` type, `DefaultReverseRegistrar`, `NewBaseRegistrarAt`.
+- Bindings generated with abigen `--v2` under `contracts/v2`, vendored from `ensdomains/contracts-v2` at a pinned revision by `internal/cmd/vendorabi`, with `make check-generated` in CI.
+- An in-process simulated chain (`internal/simchain`) that deploys the real v2 bytecode so the whole write path is tested offline by `go test -short`.
+- Live tests against mainnet and Sepolia, a nightly workflow and a cutover watch that records whether the canonical Universal Resolver serves v2 yet.
+
+### Changed
+
+- **Module path:** `github.com/ensdomains/go-ens/v4` → `github.com/ensdomains/go-ens/v5`.
+- **Package layout mirrors ensjs:** the root package is version-agnostic; the v1-era name management (`Name`, `Registry`, `BaseRegistrar`, `ETHController`, `Resolver`, `ReverseRegistrar`, `ReverseResolver`, auction, deed and DNS helpers, `DeriveTokenID`) moved unchanged to the `v1` package, and bindings moved from `contracts/<pkg>` to `contracts/v1/<pkg>`.
+- `Resolve`, `ReverseResolve` and `Format` remain as package-level shortcuts and construct a throwaway `Client`.
+- `ReverseResolve` returns `ErrNoPrimaryName` (message unchanged, `"no resolution"`) instead of an ad-hoc error.
+- `DNSEncode` returns `*LabelTooLongError` for labels over 255 bytes instead of substituting a bracketed labelhash, which `UniversalResolverV2` cannot decode.
+- `NewUniversalResolver` keeps its signature; `Parameter` is now an alias of `Option`, and `WithAddress` also skips the chain-ID probe. The binding is regenerated from `UniversalResolverV2`, adding `FindResolver`, `IsENSv2`, `ResolveDNS` and gateway overrides.
+- `UnknownChainError.ChainID` is a `uint64`.
+- `v1.NewETHController` takes the controller address from the chain configuration instead of the `.eth` resolver's interface-implementer record, which stops working once the ENS DAO repoints that resolver at the v2 mirror. `v1.NewName` no longer calls `IsValid`.
+- `v1.Name` and `v1.ReverseResolver` are deprecated: v1 registration and renewal stop working at migration phase 3, and direct `name(bytes32)` reads fail against a `PermissionedResolver`.
+- `golangci-lint` and `abigen` run under the Go 1.25 toolchain (`GOTOOLCHAIN=go1.25.0`) because neither builds on Go 1.27 yet; `make lint` and `make generate` set it.
+
+### Removed
+
+- `github.com/pkg/errors` dependency.
+- `contracts/universalresolver` (the two-function v1 ABI); use `contracts/v2/universalresolver`.
+- The `ur.integration-tests.eth` wildcard fixtures that depended on the legacy resolver's caller address.
+
+### Security
+
+- Reverts from every v2 write are decoded into typed errors before gas estimation, and `Registrar.Register` refuses to send when the commitment window, availability, allowance or balance would make the transaction fail.
 
 ## [4.0.0] - 2026-08-17
 
@@ -51,4 +94,5 @@ This is a breaking major version relative to [v3.6.0](https://github.com/ensdoma
 
 - Travis CI (`.travis.yml`). Tests and lint run on GitHub Actions (`main`).
 
+[5.0.0]: https://github.com/ensdomains/go-ens/compare/v4.0.0...v5.0.0
 [4.0.0]: https://github.com/ensdomains/go-ens/compare/v3.6.0...v4.0.0

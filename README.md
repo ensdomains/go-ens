@@ -2,134 +2,138 @@
 
 [![Tag](https://img.shields.io/github/tag/ensdomains/go-ens.svg)](https://github.com/ensdomains/go-ens/releases/)
 [![License](https://img.shields.io/github/license/ensdomains/go-ens.svg)](LICENSE)
-[![GoDoc](https://pkg.go.dev/badge/github.com/ensdomains/go-ens/v4.svg)](https://pkg.go.dev/github.com/ensdomains/go-ens/v4)
-[![Test](https://github.com/ensdomains/go-ens/actions/workflows/test.yml/badge.svg)](https://github.com/ensdomains/go-ens/actions/workflows/test.yml)
+[![GoDoc](https://pkg.go.dev/badge/github.com/ensdomains/go-ens/v5.svg)](https://pkg.go.dev/github.com/ensdomains/go-ens/v5)
+[![CI](https://github.com/ensdomains/go-ens/actions/workflows/ci.yml/badge.svg)](https://github.com/ensdomains/go-ens/actions/workflows/ci.yml)
 
-Go module to simplify interacting with the [Ethereum Name Service](https://ens.domains/) contracts.
+Go module for the [Ethereum Name Service](https://ens.domains/), with full support for [ENS v2](docs/ensv2.md).
 
-This is the ENS Go library. It is the continuation of [`wealdtech/go-ens`](https://github.com/wealdtech/go-ens); install and import `github.com/ensdomains/go-ens/v4` rather than `github.com/wealdtech/go-ens/v3`.
+This is the ENS Go library, the continuation of [`wealdtech/go-ens`](https://github.com/wealdtech/go-ens). Import `github.com/ensdomains/go-ens/v5`. Upgrading: [MIGRATION.md](MIGRATION.md). History: [CHANGELOG.md](CHANGELOG.md).
 
-v4 resolves names through the ENS [Universal Resolver](https://docs.ens.domains/web/ensv2-readiness/), so ENSIP-10 wildcards and ERC-3668 CCIP-Read work out of the box. Callers that need the previous registry-walking behaviour should stay on `github.com/wealdtech/go-ens/v3`. Upgrading from v3: [MIGRATION.md](MIGRATION.md). Full history: [CHANGELOG.md](CHANGELOG.md).
+## Layout
 
-
-## Table of Contents
-
-- [Install](#install)
-- [Usage](#usage)
-- [Migrating from v3](MIGRATION.md)
-- [Changelog](CHANGELOG.md)
-- [Maintainers](#maintainers)
-- [Contribute](#contribute)
-- [License](#license)
+| Package | Purpose |
+| --- | --- |
+| `github.com/ensdomains/go-ens/v5` | Version-agnostic: `Client`, chain configuration, resolution and reverse resolution through the Universal Resolver, record reads, resolver and owner discovery, migration status, normalisation and hashing. Works for every name, v1 or v2. |
+| `github.com/ensdomains/go-ens/v5/v2` | ENS v2: hierarchical registries, the ERC-20 priced `.eth` registrar and renewers, `PermissionedResolver` and `PublicResolverV2`, the proxy factory, subnames, roles, reverse adapters. |
+| `github.com/ensdomains/go-ens/v5/v1` | ENS v1: the legacy registry, `BaseRegistrar`, controller, `PublicResolver`, reverse registrars and NameWrapper reads, for names that have not migrated. |
+| `github.com/ensdomains/go-ens/v5/ccipread` | ERC-3668 CCIP-Read client. |
 
 ## Install
 
-`go-ens` is a standard Go module which can be installed with:
+```sh
+go get github.com/ensdomains/go-ens/v5
+```
+
+Go 1.25 or later.
+
+## Resolution
+
+```go
+client, err := ethclient.Dial("https://mainnet.infura.io/v3/SECRET")
+c, err := ens.NewClient(ctx, client) // picks the mainnet or Sepolia configuration from the chain ID
+
+address, err := c.ResolveAddress(ctx, "vitalik.eth")
+name, err := c.ReverseResolve(ctx, address)   // ErrNoPrimaryName when none is set
+fmt.Println(c.Format(ctx, address))            // name, or the hex address
+
+text, err := c.Text(ctx, "vitalik.eth", "url")
+recs, err := c.Records(ctx, "vitalik.eth", ens.RecordsRequest{ // one round trip
+    Texts: []string{"url", "com.twitter"}, Coins: []uint64{ens.CoinTypeETH, ens.EVMCoinType(10)}, Contenthash: true,
+})
+```
+
+Every read goes through the ENS Universal Resolver, so ENSIP-10 wildcards and ERC-3668 CCIP-Read names resolve like on-chain ones, and names held in the v1 registry resolve through the v2 mirror after the cutover. `ens.Resolve`, `ens.ReverseResolve` and `ens.Format` remain as package-level shortcuts.
+
+Reverse lookups for other EVM chains follow ENSIP-19:
+
+```go
+name, err := c.ReverseResolveCoin(ctx, address.Bytes(), ens.EVMCoinType(8453))
+```
+
+## Where a name stands
+
+```go
+st, err := c.MigrationStatus(ctx, "vitalik.eth")
+switch st.State {
+case ens.MigrationStateV1Reserved:   // still in the v1 registrar; renews through ETHRenewerV1
+case ens.MigrationStateMigratedFromV1, ens.MigrationStateNativeV2: // held by the v2 .eth registry
+case ens.MigrationStateAvailable:    // registrable once v2 registration is enabled
+}
+
+info, err := c.WritableResolver(ctx, "vitalik.eth") // the contract that holds the records, and its family
+owner, err := c.Owner(ctx, "vitalik.eth")            // v2 owner through the UniversalHelper
+v2yet, err := c.IsENSv2(ctx)                          // has the canonical resolver been switched to v2?
+```
+
+## Registering and managing names (v2)
+
+```go
+v2c := v2.NewClient(c)
+
+open, err := v2c.RegistrationOpen(ctx) // false on mainnet until the ENS DAO enables the v2 registrar
+
+// A resolver for the name, with its first records set during deployment.
+pr := v2c.PermissionedResolver(predicted) // predicted := Factory().PredictProxyAddress(ctx, opts.From, salt)
+setAddr, _ := pr.BuildSetAddress("example.eth", ens.CoinTypeETH, opts.From.Bytes())
+tx, resolver, err := v2c.DeployPermissionedResolver(ctx, opts, v2.DeployResolverParams{Salt: salt, InitCalls: []ens.Call{setAddr}})
+
+// Commit, wait, pay in USDC, register.
+secret, _ := v2.NewSecret()
+params := v2.RegistrationParams{Commitment: v2.Commitment{
+    Label: "example", Owner: opts.From, Secret: secret, Resolver: resolver, Duration: 365 * 24 * time.Hour,
+}}
+tx, hash, err := v2c.ETHRegistrar().Commit(opts, params.Commitment)
+err = v2c.ETHRegistrar().WaitForCommitment(ctx, hash)
+price, err := v2c.ETHRegistrar().RegisterPrice(ctx, "example", params.Duration, common.Address{})
+tx, err = v2c.EnsureAllowance(ctx, opts, price.Token, v2c.Config().V2.ETHRegistrar, price.Total())
+tx, err = v2c.ETHRegistrar().Register(ctx, opts, params)
+res, err := v2c.ETHRegistrar().WaitRegistered(ctx, tx)
+
+// Renew (routes to ETHRegistrar or, for unmigrated v1 names, ETHRenewerV1).
+tx, err = v2c.Renew(ctx, opts, v2.RenewData{Label: "example", Duration: 365 * 24 * time.Hour}, common.Address{})
+
+// Records, roles, subnames, transfer.
+tx, err = pr.SetRecords(opts, "example.eth", v2.RecordSet{Texts: map[string]string{"url": "https://example.org"}})
+n, err := v2c.Name(ctx, "example.eth")
+tx, err = n.GrantRoles(opts, v2.NewRoles(v2.RoleSetResolver), delegate)
+receipts, err := v2c.CreateSubname(ctx, opts, v2.SubnameParams{Name: "sub.example.eth", Owner: friend, Resolver: resolver}, nil)
+tx, err = n.Transfer(ctx, opts, newOwner)
+```
+
+Registration and renewal are paid in ERC-20 (USDC or DAI on mainnet). `Register` checks the commitment window, availability, allowance and balance before sending and returns typed errors (`errors.Is(err, v2.ErrInsufficientAllowance)`, `errors.As(err, &v2.CommitmentTooNewError{})`, …). Every write has a `Build*` twin returning an `ens.Call` for multisigs or offline signing.
+
+Primary names are still stored by the v1 reverse registrars:
+
+```go
+rr, err := v1.NewClient(c).ReverseRegistrar()
+tx, err := rr.SetName(opts, "example.eth")
+```
+
+## Other chains
+
+Mainnet and Sepolia tables are built in. For a fork or devnet pass a full configuration:
+
+```go
+c, err := ens.NewClient(ctx, client, ens.WithChainConfig(cfg))
+```
+
+To exercise `UniversalResolverV2` on mainnet before the ENS DAO repoints the canonical proxy:
+
+```go
+cfg := ens.MainnetConfig()
+c, err := ens.NewClient(ctx, client, ens.WithUniversalResolver(cfg.V2.UniversalResolverV2))
+```
+
+## Development
 
 ```sh
-go get github.com/ensdomains/go-ens/v4
+make test        # unit tests plus the in-process simulated chain
+make test-live   # read tests against mainnet (GO_ENS_TEST_RPC, public fallback)
+make lint        # golangci-lint under the Go 1.25 toolchain
+make generate    # re-vendor ABIs from contracts-v2 and regenerate bindings
 ```
 
-## Usage
-
-`go-ens` provides simple access to the [Ethereum Name Service](https://ens.domains/) (ENS) contracts.
-
-### Resolution
-
-The most commonly-used feature of ENS is resolution: converting an ENS name to an Ethereum address.  `go-ens` provides a simple call to allow this:
-
-```go
-address, err := ens.Resolve(ctx, client, domain)
-```
-
-where `ctx` is a `context.Context` (honoured for cancellation and deadlines through any CCIP-Read hops), `client` is a connection to an Ethereum client, and `domain` is the fully-qualified name you wish to resolve (e.g. `foo.mydomain.eth`) (full examples for using this are given in the [Example](#Example) section below).
-
-The reverse process, converting an address to an ENS name, is just as simple:
-
-```go
-domain, err := ens.ReverseResolve(ctx, client, address)
-```
-
-If the address has no primary name set this returns an error (`"no resolution"`).  If you just want a string version of an address for on-screen display then you can use `ens.Format()`, for example:
-
-```go
-fmt.Printf("The address is %s\n", ens.Format(ctx, client, address))
-```
-
-This will carry out reverse resolution of the address and print the name if present; if not it will print a formatted version of the address.
-
-`ens.Resolve`, `ens.ReverseResolve`, `ens.Format`, and `Name.Address` all go through the Universal Resolver, so ENSIP-10 wildcards and ERC-3668 CCIP-Read names resolve the same way as on-chain names. `Resolver` read methods (`Address`, `Text`, `Contenthash`, `MultiAddress`) call the specific resolver contract that `Resolver` is bound to and do **not** follow wildcards or CCIP-Read. For those names use `ens.Resolve` (or `UniversalResolver`); keep `Resolver` for writes (`SetAddress`, `SetText`, and so on) and for reading a resolver you already hold.
-
-### Management of names
-
-A top-level name is one that sits directly underneath `.eth`, for example `mydomain.eth`.  Lower-level names, such as `foo.mydomain.eth` are covered in the following section.  `go-ens` provides a simplified `Name` interface to manage top-level, removing the requirement to understand registrars, controllers, _etc._
-
-Starting out with names in `go-ens` is easy:
-
-```go
-client, err := ethclient.Dial("https://infura.io/v3/SECRET")
-name, err := ens.NewName(client, "mydomain.eth")
-```
-
-Addresses can be set and obtained using the address functions, for example to get an address:
-
-```go
-COIN_TYPE_ETHEREUM := uint64(60)
-address, err := name.Address(ctx, COIN_TYPE_ETHEREUM)
-```
-
-`Name.Address` uses the Universal Resolver (same answer as `ens.Resolve` for coin type 60). The `Resolver.Address` method does not — see the note under [Resolution](#resolution).
-
-ENS supports addresses for multiple coin types; values of coin types can be found at https://github.com/satoshilabs/slips/blob/master/slip-0044.md
-
-### Registering and extending names
-
-Most operations on a domain will involve setting resolvers and resolver information.
-
-
-### Management of subdomains
-
-Because subdomains have their own registrars they do not work with the `Name` interface.
-
-### Example
-
-```go
-package main
-
-import (
-	"context"
-	"fmt"
-
-	"github.com/ethereum/go-ethereum/ethclient"
-	ens "github.com/ensdomains/go-ens/v4"
-)
-
-func main() {
-	ctx := context.Background()
-
-	// Replace SECRET with your own access token for this example to work.
-	client, err := ethclient.Dial("https://mainnet.infura.io/v3/SECRET")
-	if err != nil {
-		panic(err)
-	}
-
-	// Resolve a name to an address.
-	domain := "ethereum.eth"
-	address, err := ens.Resolve(ctx, client, domain)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("Address of %s is %s\n", domain, address.Hex())
-
-	// Reverse resolve an address to a name.
-	reverse, err := ens.ReverseResolve(ctx, client, address)
-	if err != nil {
-		fmt.Printf("%s has no reverse lookup: %v\n", address.Hex(), err)
-	} else {
-		fmt.Printf("Name of %s is %s\n", address.Hex(), reverse)
-	}
-}
-```
+See [docs/contracts.md](docs/contracts.md) for the binding pipeline and [docs/ensv2.md](docs/ensv2.md) for the ENS v2 model as this library sees it.
 
 ## Maintainers
 
