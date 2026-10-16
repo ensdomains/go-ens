@@ -11,8 +11,8 @@ package v2_test
 import (
 	"context"
 	"crypto/rand"
-	"errors"
 	"encoding/hex"
+	"errors"
 	"math/big"
 	"os"
 	"testing"
