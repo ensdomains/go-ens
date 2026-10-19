@@ -171,6 +171,38 @@ func (e *PrimaryNameNotNormalizedError) Error() string {
 	return fmt.Sprintf("primary name %q is not normalized", e.Name)
 }
 
+// RegistryRevertError corresponds to ResolutionError(address,bytes): a
+// registry reverted while the Universal Resolver, helper or mirror walked
+// the v2 tree. The inner revert bytes are preserved verbatim.
+type RegistryRevertError struct {
+	Registry common.Address
+	Data     []byte
+}
+
+func (e *RegistryRevertError) Error() string {
+	return fmt.Sprintf("registry %s reverted: 0x%s", e.Registry.Hex(), hex.EncodeToString(e.Data))
+}
+
+// Inner decodes the nested revert payload; nil when empty.
+func (e *RegistryRevertError) Inner() error {
+	if len(e.Data) == 0 {
+		return nil
+	}
+	inner, _ := urDecoder.TranslateData(e.Data)
+	return inner
+}
+
+// Unwrap exposes the decoded inner error to errors.Is and errors.As.
+func (e *RegistryRevertError) Unwrap() error { return e.Inner() }
+
+// InvalidOffchainLookupError corresponds to InvalidOffchainLookup(): a
+// resolver produced a malformed ERC-3668 OffchainLookup revert.
+type InvalidOffchainLookupError struct{}
+
+func (e *InvalidOffchainLookupError) Error() string {
+	return "resolver produced an invalid OffchainLookup"
+}
+
 // urDecoder decodes the Universal Resolver custom errors.
 var urDecoder = revert.NewDecoder().
 	Register("ResolverNotFound(bytes)", func(a []any) error {
@@ -222,7 +254,11 @@ var urDecoder = revert.NewDecoder().
 	}).
 	Register("PrimaryNameNotNormalized(string)", func(a []any) error {
 		return &PrimaryNameNotNormalizedError{Name: stringArg(a, 0)}
-	})
+	}).
+	Register("ResolutionError(address,bytes)", func(a []any) error {
+		return &RegistryRevertError{Registry: addressArg(a, 0), Data: bytesArg(a, 1)}
+	}).
+	Register("InvalidOffchainLookup()", func([]any) error { return &InvalidOffchainLookupError{} })
 
 // URDecoder returns a copy of the Universal Resolver error decoder so other
 // packages can merge it into their own.

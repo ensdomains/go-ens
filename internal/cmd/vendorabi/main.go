@@ -43,11 +43,11 @@ import (
 )
 
 // ContractsV2Ref is the pinned ensdomains/contracts-v2 commit.
-const ContractsV2Ref = "f15a355cd18f341e3f2ed303a38700f26bd08ee1"
+const ContractsV2Ref = "fce23470d9d9cd7cad3da02bb4b447119fdf4c42"
 
 // ENSContractsRef is the ensdomains/ens-contracts submodule commit pinned by
 // contracts-v2 at ContractsV2Ref; the v1 artifacts are taken from there.
-const ENSContractsRef = "121dc232df06be28e5eabb34ebfc4bc788498c05"
+const ENSContractsRef = "f0151aaf8a53b5b8f725a584fc194997c8226fbd"
 
 const (
 	contractsV2Raw  = "https://raw.githubusercontent.com/ensdomains/contracts-v2/%s/contracts/deployments/%s/%s.json"
@@ -287,17 +287,15 @@ func run(src *source, out string, withBytecode bool) error {
 		sum := sha256.Sum256(formatted)
 		m.ABIs["contracts/"+ver+"/"+b.pkg] = hex.EncodeToString(sum[:])
 		if !b.v1 {
-			// Sepolia must carry the identical ABI; fail loudly if the namespaces diverge.
+			// Sepolia may lag mainnet by a redeploy; its functions and events
+			// must still match (the bindings are shared), while custom errors
+			// may differ since newer builds only add them.
 			sa, err := src.artifact("sepolia", b.file, false)
 			if err != nil {
 				return err
 			}
-			sf, err := formatABI(sa.ABI)
-			if err != nil {
-				return err
-			}
-			if !bytes.Equal(sf, formatted) {
-				return fmt.Errorf("%s: mainnet and sepolia ABIs differ", b.file)
+			if err := compatibleABIs(a.ABI, sa.ABI); err != nil {
+				return fmt.Errorf("%s: mainnet and sepolia ABIs are incompatible: %w", b.file, err)
 			}
 		}
 	}
@@ -344,6 +342,54 @@ func run(src *source, out string, withBytecode bool) error {
 		return err
 	}
 	return writeFile(filepath.Join(out, "contracts", "v2", "manifest.json"), append(raw, '\n'))
+}
+
+// compatibleABIs reports an error when two ABIs differ in any function or
+// event signature. Custom errors may differ.
+func compatibleABIs(a, b json.RawMessage) error {
+	sigs := func(raw json.RawMessage) (map[string]bool, error) {
+		var entries []struct {
+			Type   string `json:"type"`
+			Name   string `json:"name"`
+			Inputs []struct {
+				Type string `json:"type"`
+			} `json:"inputs"`
+		}
+		if err := json.Unmarshal(raw, &entries); err != nil {
+			return nil, err
+		}
+		out := map[string]bool{}
+		for _, e := range entries {
+			if e.Type != "function" && e.Type != "event" {
+				continue
+			}
+			var types []string
+			for _, in := range e.Inputs {
+				types = append(types, in.Type)
+			}
+			out[e.Type+" "+e.Name+"("+strings.Join(types, ",")+")"] = true
+		}
+		return out, nil
+	}
+	as, err := sigs(a)
+	if err != nil {
+		return err
+	}
+	bs, err := sigs(b)
+	if err != nil {
+		return err
+	}
+	for sig := range as {
+		if !bs[sig] {
+			return fmt.Errorf("%s missing on sepolia", sig)
+		}
+	}
+	for sig := range bs {
+		if !as[sig] {
+			return fmt.Errorf("%s missing on mainnet", sig)
+		}
+	}
+	return nil
 }
 
 // formatABI re-indents an ABI array without reordering entries. abigen derives

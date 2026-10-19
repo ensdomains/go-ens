@@ -43,6 +43,22 @@
     "type": "error"
   },
   {
+    "inputs": [
+      {
+        "internalType": "contract IRegistry",
+        "name": "registry",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "errorData",
+        "type": "bytes"
+      }
+    ],
+    "name": "ResolutionError",
+    "type": "error"
+  },
+  {
     "inputs": [],
     "name": "CONTRACT_NAMER",
     "outputs": [

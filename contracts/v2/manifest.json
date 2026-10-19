@@ -1,6 +1,6 @@
 {
-  "contractsV2Ref": "f15a355cd18f341e3f2ed303a38700f26bd08ee1",
-  "ensContractsRef": "121dc232df06be28e5eabb34ebfc4bc788498c05",
+  "contractsV2Ref": "fce23470d9d9cd7cad3da02bb4b447119fdf4c42",
+  "ensContractsRef": "f0151aaf8a53b5b8f725a584fc194997c8226fbd",
   "abis": {
     "contracts/v1/defaultreverseregistrar": "6ffe2eeb620f7e3a200570255b8af0c37dad4ebea4c75607bcfbb7ff3c973a62",
     "contracts/v1/namewrapper": "8da066fc23613a71b8f079e78989d378daf9d11d3d7ef8131865da1f6ffe6502",
@@ -11,11 +11,11 @@
     "contracts/v2/labelstore": "3da25319ee1ca4dca4439668519db5cc27dcb6eb3b27b396952224cfc59c6595",
     "contracts/v2/permissionedregistry": "c8c55d2b548956d44b817a338136aabbc4c03a7ce3c025e359df69b6eb36bb94",
     "contracts/v2/permissionedresolver": "1fc68a5c94f502cceced16cc8dbb026b4f8234d2d0e5e197e9c1551ba14a5837",
-    "contracts/v2/publicresolver": "87d6b4ba8dd47b0741fe29512dc93e67f18538e71564d0e685716a1116f841d9",
+    "contracts/v2/publicresolver": "17605c83f6e737938c2e7d43b72ec62f537616c7e2dc09e53110a04ac93fd8f0",
     "contracts/v2/rentpriceoracle": "e6a74bb36074015c6c41ae12a93b52933ba8d4b7b0e32f72df14ecd1d8f03db3",
     "contracts/v2/reverseregistraradapter": "a73a1759184b887901f9c00753505bd7dc0468e776699157d9234fad683f560b",
-    "contracts/v2/universalhelper": "5e75bd2ea7df5f8eacedbb756042cdbc3120c5f87aacf473dde5c819f0cae6ea",
-    "contracts/v2/universalresolver": "b06a6c54df1ecba48c76a909a59491ef38567d713cd2685b7e091ac916370f9f",
+    "contracts/v2/universalhelper": "6207110ac0dc88d84e5318a039c97701b830bf293f5805c50130054b17297b55",
+    "contracts/v2/universalresolver": "28f5886b933b51820370407d91a1286eb19f2e25e7fde46593302a2ad0f92828",
     "contracts/v2/verifiablefactory": "c659e4540db251791688a5fa7dfccb79b2e01d3fe646ab2415052e9cdba3f446",
     "contracts/v2/wrapperregistry": "3234f70030d41d3476c2aca668d51cdba55f6521f0d31b5efe6b75377a90eabf"
   }

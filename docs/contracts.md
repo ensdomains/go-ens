@@ -8,13 +8,13 @@
 | `contracts/v2/*` | `ensdomains/contracts-v2` deployment artifacts (`contracts/deployments/mainnet/*.json`), pinned by commit in `contracts/v2/manifest.json` | abigen `--v2` bindings |
 | `contracts/v2/erc20` | hand-written minimal ERC-20 ABI (plus the mock tokens' `mint` and the OpenZeppelin v5 insufficiency errors) | abigen `--v2` |
 
-Mainnet and Sepolia ship byte-identical ABIs; the vendoring tool fails if they ever differ.
+ABIs are vendored from the mainnet artifacts. Sepolia may lag a mainnet redeploy, so the vendoring tool only requires the two to agree on functions and events; custom errors may differ (newer builds add some).
 
 `contracts/v2/deployments/{mainnet,sepolia}.json` record every artifact's address and decoded constructor arguments. `chains_test.go` pins the `ens.ChainConfig` tables to them, and cross-checks the v1 addresses against the constructor arguments the v2 contracts were deployed with, so the tables cannot drift from the deployment.
 
 | Package | Artifact | Note |
 | --- | --- | --- |
-| `universalresolver` | `UniversalResolverV2.json` | 28 functions, 17 errors |
+| `universalresolver` | `UniversalResolverV2.json` | 28 functions, 19 errors |
 | `universalhelper` | `UniversalHelper.json` | |
 | `permissionedregistry` | `UserRegistryImpl.json` | strict superset of the `ETHRegistry` and `RootRegistry` ABIs; one binding serves every registry |
 | `wrapperregistry` | `WrapperRegistryImpl.json` | vendored for the v5.1 migration flows |

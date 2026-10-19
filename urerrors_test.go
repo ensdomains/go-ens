@@ -124,6 +124,15 @@ func TestTranslateURRevert_ResolverErrorWrapsInner(t *testing.T) {
 	require.True(t, errors.As(got, &profile))
 }
 
+func TestTranslateURRevert_ResolutionErrorWrapsInner(t *testing.T) {
+	inner := revertData(t, "LabelIsEmpty()")
+	got := translateURRevert(revertErr(t, "ResolutionError(address,bytes)", common.HexToAddress("0x0a"), inner))
+	var typed *RegistryRevertError
+	require.ErrorAs(t, got, &typed)
+	require.Equal(t, common.HexToAddress("0x0a"), typed.Registry)
+	require.True(t, errors.Is(got, ErrEmptyLabel))
+}
+
 func TestTranslateURRevert_HTTPGateway(t *testing.T) {
 	got := translateURRevert(revertErr(t, "HttpError(uint16,string)", uint16(502), "bad gateway"))
 	var typed *HTTPGatewayError
@@ -156,6 +165,8 @@ func TestTranslateURRevert_V2Errors(t *testing.T) {
 		{"OffsetOutOfBoundsError(uint256,uint256)", []any{big.NewInt(5), big.NewInt(3)}, &OffsetOutOfBoundsError{}, nil},
 		{"NormalizationChangedName(bytes,bytes,address)", []any{[]byte{1}, []byte{2}, common.Address{}}, &NormalizationChangedNameError{}, nil},
 		{"PrimaryNameNotNormalized(string)", []any{"Vitalik.eth"}, &PrimaryNameNotNormalizedError{}, nil},
+		{"InvalidOffchainLookup()", nil, &InvalidOffchainLookupError{}, nil},
+		{"ResolutionError(address,bytes)", []any{common.HexToAddress("0x01"), []byte{1}}, &RegistryRevertError{}, nil},
 	}
 	for _, tc := range cases {
 		t.Run(tc.sig, func(t *testing.T) {

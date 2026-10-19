@@ -70,6 +70,11 @@
   },
   {
     "inputs": [],
+    "name": "InvalidOffchainLookup",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "LabelIsEmpty",
     "type": "error"
   },
@@ -161,6 +166,22 @@
       }
     ],
     "name": "PrimaryNameNotNormalized",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract IRegistry",
+        "name": "registry",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "errorData",
+        "type": "bytes"
+      }
+    ],
+    "name": "ResolutionError",
     "type": "error"
   },
   {

@@ -1,6 +1,6 @@
 {
   "chainId": 1,
-  "ref": "f15a355cd18f341e3f2ed303a38700f26bd08ee1",
+  "ref": "fce23470d9d9cd7cad3da02bb4b447119fdf4c42",
   "contracts": {
     "BatchRegistrar": {
       "address": "0xf0ccfbf6dba1e01ccb833ced6d551a8f000e9721",
@@ -27,7 +27,7 @@
       }
     },
     "DNSAliasResolver": {
-      "address": "0x853ad6e4d8dedb235c3691fc1296d947a4f54073",
+      "address": "0x13285e928c65befd90904f77a68fe4e7d9a43882",
       "constructorArgs": {
         "batchGatewayProvider": "0xd1E3FAc3837b85437530B8B5244E4deF43219C04",
         "contractNamer": "0x5cDaF63d4C2a01218149DDe707E5bc239c68730c",
@@ -44,11 +44,10 @@
       }
     },
     "DNSTLDResolver": {
-      "address": "0xb16b10b682b9efa73782a10d4dd2f4957d9f9d0a",
+      "address": "0xab48304a2520ce420e636aacd48a8bb3e7e485ee",
       "constructorArgs": {
         "batchGatewayProvider": "0xd1E3FAc3837b85437530B8B5244E4deF43219C04",
         "contractNamer": "0x5cDaF63d4C2a01218149DDe707E5bc239c68730c",
-        "dnsTLDResolverV1": "0xF142B308cF687d4358410a4cB885513b30A42025",
         "dnssecOracle": "0x0fc3152971714E5ed7723FAFa650F86A4BaF30C5",
         "ensRegistryV1": "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
         "oracleGatewayProvider": "0xA646BCEE466D77669A087f3379640CB03aCA7c3D",
@@ -87,7 +86,7 @@
       }
     },
     "ENSV2Resolver": {
-      "address": "0xa6d451c5e283bdd0a7c193910f55db57512aa7b2",
+      "address": "0x3071ad643ce4ed8b3d67b289845b45db82b068a4",
       "constructorArgs": {
         "batchGatewayProvider": "0xd1E3FAc3837b85437530B8B5244E4deF43219C04",
         "contractNamer": "0x5cDaF63d4C2a01218149DDe707E5bc239c68730c",
@@ -161,16 +160,16 @@
       }
     },
     "LockedMigrationController": {
-      "address": "0xa19d4d49230200b3e81290a87dd12ea916af7be6",
+      "address": "0xc46bf3b6c7ebcffd4ecfc3b012a1726a2463694d",
       "constructorArgs": {
         "contractNamer": "0x5cDaF63d4C2a01218149DDe707E5bc239c68730c",
         "ethRegistry": "0xf60aba43E1f7F3DAB1186Ff03B561401C9Df85E2",
         "graveyard": "0xDa021A2C1C2F99574D861Ef8c6fA745851BEB7F6",
         "nameWrapper": "0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401",
-        "publicResolver": "0x9Ca5eD532b262Bcfa72b01BD11Ed9c0054A0371f",
+        "publicResolver": "0x66f9F566fF2f26309C1Bd9134388478A801dA3e1",
         "publicResolverSet": "0xfFCedA021CBDF20f1a66ebbef32E49d208cAbf62",
         "verifiableFactory": "0x77510ba162dfeA3d8989E3f0928a691B345730D2",
-        "wrapperRegistryImpl": "0xB0c8e6F3BdC0E225B7Cad0D507D191884Ee9AcFC"
+        "wrapperRegistryImpl": "0xCF3Edb3f5501DE63B57254D910b6782eE370039B"
       }
     },
     "ManagedUniversalResolverProxy": {
@@ -181,10 +180,10 @@
       }
     },
     "MigrationHelper": {
-      "address": "0x3760c796fd928d54afaee61174a0f8f37649fbd4",
+      "address": "0x0b92006fa187b4c98d0a7dfc9d3b918b6d243485",
       "constructorArgs": {
         "contractNamer": "0x5cDaF63d4C2a01218149DDe707E5bc239c68730c",
-        "lockedController": "0xa19d4d49230200b3e81290A87dd12ea916aF7BE6",
+        "lockedController": "0xc46Bf3B6C7eBcFFd4EcfC3b012a1726a2463694d",
         "rootRegistry": "0x2553c09bE6447BeFfdB86FA622ad41fB8f77A91e",
         "standaloneHCAFactory": "0x742bf21897a78e2C98cC5f5C5473A370a081e561",
         "unlockedController": "0xaB821Ca676CF2e0790Fa273526a165CFa86aEB64"
@@ -203,7 +202,7 @@
       }
     },
     "PublicResolverV2": {
-      "address": "0x9ca5ed532b262bcfa72b01bd11ed9c0054a0371f",
+      "address": "0x66f9f566ff2f26309c1bd9134388478a801da3e1",
       "constructorArgs": {
         "contractNamer": "0x5cDaF63d4C2a01218149DDe707E5bc239c68730c",
         "nameWrapper": "0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401",
@@ -302,14 +301,14 @@
       }
     },
     "UniversalHelper": {
-      "address": "0x3797c3fcc1c4f4952d115cf2d1b9f94e28581108",
+      "address": "0x46ae127d14683ac74ef151e46ae2117a1a25c676",
       "constructorArgs": {
         "contractNamer": "0x5cDaF63d4C2a01218149DDe707E5bc239c68730c",
         "rootRegistry": "0x2553c09bE6447BeFfdB86FA622ad41fB8f77A91e"
       }
     },
     "UniversalResolverV1": {
-      "address": "0x9a2f6f40c1032bd77a3be018d87d099044f366b5",
+      "address": "0x804bf0d289c8353a0bafdaaf9069ab14c92b2099",
       "constructorArgs": {
         "_batchGatewayProvider": "0xd1E3FAc3837b85437530B8B5244E4deF43219C04",
         "ens": "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
@@ -317,7 +316,7 @@
       }
     },
     "UniversalResolverV2": {
-      "address": "0x7c027c9ce787d85ddad999c8601be4139a9ac39d",
+      "address": "0x06fdd07f007adac667177b46ab2eb9a75132cfd5",
       "constructorArgs": {
         "batchGatewayProvider": "0xd1E3FAc3837b85437530B8B5244E4deF43219C04",
         "contractNamer": "0x5cDaF63d4C2a01218149DDe707E5bc239c68730c",
@@ -348,14 +347,14 @@
       "address": "0x77510ba162dfea3d8989e3f0928a691b345730d2"
     },
     "WrapperRegistryImpl": {
-      "address": "0xb0c8e6f3bdc0e225b7cad0d507d191884ee9acfc",
+      "address": "0xcf3edb3f5501de63b57254d910b6782ee370039b",
       "constructorArgs": {
         "ensV1Resolver": "0x394D8EB4a4fDF599384DeAb25F31d111d755c398",
         "graveyard": "0xDa021A2C1C2F99574D861Ef8c6fA745851BEB7F6",
         "labelStore": "0x31e5E081fe38d15B3E8214ba5Cb08dC4708B70Ba",
         "nameWrapper": "0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401",
         "namer": "0xFe89cc7aBB2C4183683ab71653C4cdc9B02D44b7",
-        "publicResolver": "0x9Ca5eD532b262Bcfa72b01BD11Ed9c0054A0371f",
+        "publicResolver": "0x66f9F566fF2f26309C1Bd9134388478A801dA3e1",
         "publicResolverSet": "0xfFCedA021CBDF20f1a66ebbef32E49d208cAbf62",
         "upgradeSet": "0x573A73c0B3C0C90bB8BD728519434aF19Fb88935",
         "uriRenderer": "0x6f412Ff4144d525f791777d3384e9A1B170492Fb",
