@@ -1,0 +1,22 @@
+{
+  "contractsV2Ref": "0f10caf50054f1af96197350aed6a4f072e4f205",
+  "ensContractsRef": "f0151aaf8a53b5b8f725a584fc194997c8226fbd",
+  "abis": {
+    "contracts/v1/defaultreverseregistrar": "6ffe2eeb620f7e3a200570255b8af0c37dad4ebea4c75607bcfbb7ff3c973a62",
+    "contracts/v1/namewrapper": "8da066fc23613a71b8f079e78989d378daf9d11d3d7ef8131865da1f6ffe6502",
+    "contracts/v2/compositeresolver": "7e1d216b08280e729c1d98794e531a621e97dc0f7cc17a86d4b5480ec97ce3a9",
+    "contracts/v2/defaultreverseregistraradapter": "7336b7f40082cb5c4f38d46262811788adb0672c885355d7617ccee59ff78146",
+    "contracts/v2/ethregistrar": "a98d5cd2d43c5157906535e35b6b4c1a4cc1f480e25fba0b24d740efde33ead4",
+    "contracts/v2/ethrenewerv1": "e993d995aa226b64c74b707bc0de8641a7c218d075d688e5a248935344a26df8",
+    "contracts/v2/labelstore": "3da25319ee1ca4dca4439668519db5cc27dcb6eb3b27b396952224cfc59c6595",
+    "contracts/v2/permissionedregistry": "c8c55d2b548956d44b817a338136aabbc4c03a7ce3c025e359df69b6eb36bb94",
+    "contracts/v2/permissionedresolver": "1fc68a5c94f502cceced16cc8dbb026b4f8234d2d0e5e197e9c1551ba14a5837",
+    "contracts/v2/publicresolver": "17605c83f6e737938c2e7d43b72ec62f537616c7e2dc09e53110a04ac93fd8f0",
+    "contracts/v2/rentpriceoracle": "e6a74bb36074015c6c41ae12a93b52933ba8d4b7b0e32f72df14ecd1d8f03db3",
+    "contracts/v2/reverseregistraradapter": "a73a1759184b887901f9c00753505bd7dc0468e776699157d9234fad683f560b",
+    "contracts/v2/universalhelper": "6207110ac0dc88d84e5318a039c97701b830bf293f5805c50130054b17297b55",
+    "contracts/v2/universalresolver": "28f5886b933b51820370407d91a1286eb19f2e25e7fde46593302a2ad0f92828",
+    "contracts/v2/verifiablefactory": "c659e4540db251791688a5fa7dfccb79b2e01d3fe646ab2415052e9cdba3f446",
+    "contracts/v2/wrapperregistry": "480e5ac052dc3a7c4e57755874c6e2bc81613d9d9463455e507acd7738231153"
+  }
+}

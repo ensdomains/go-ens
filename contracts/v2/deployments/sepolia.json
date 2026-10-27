@@ -1,0 +1,373 @@
+{
+  "chainId": 11155111,
+  "ref": "0f10caf50054f1af96197350aed6a4f072e4f205",
+  "contracts": {
+    "BatchRegistrar": {
+      "address": "0x4a4c8b7cdab6b19dc2cdb417cdb53a2ccbaf5322",
+      "constructorArgs": {
+        "ethRegistry_": "0xD4eBcbBdF463C9c45784603Db0dDD499BC44A8B4",
+        "owner_": "0x84D3a426D4E12E955d1DF95db0B24fe26afE39D3"
+      }
+    },
+    "BoxedENSURIRenderer": {
+      "address": "0x0f5b101b6fc626b9b210bb5e70f60f3dd9ca0d96",
+      "constructorArgs": {
+        "owner_": "0x84D3a426D4E12E955d1DF95db0B24fe26afE39D3",
+        "renderer_": "0x4D7f0349DfFB8e7BeD9fFBA1B9e45f7ECBD4f0f8"
+      }
+    },
+    "ContractNamer_Implementation": {
+      "address": "0x4b8263be7c522d8fb3fbca1f74b9c6e083b8d3e4"
+    },
+    "ContractNamer_Proxy": {
+      "address": "0x606f2453484f4fa85b6e5fdb0e0bf777064bf9f3",
+      "constructorArgs": {
+        "_data": "0xc4d66de800000000000000000000000084d3a426d4e12e955d1df95db0b24fe26afe39d3",
+        "_logic": "0x4b8263BE7c522d8Fb3FBcA1F74B9C6e083B8D3e4"
+      }
+    },
+    "DNSAliasResolver": {
+      "address": "0xe30c9374929de41b71b6fb999b945553f2194c5f",
+      "constructorArgs": {
+        "batchGatewayProvider": "0xE4e7245716d12D0F6AeA01DFe0E635C43D7D083c",
+        "contractNamer": "0x606f2453484f4Fa85b6E5FDB0E0bf777064bf9F3",
+        "rootRegistry": "0xB458D6a3a77919449d03e7A6903C26827c1eC43f"
+      }
+    },
+    "DNSSECGatewayProvider": {
+      "address": "0xd542a53982fdd0c456f02c5a54734c06073fa915",
+      "constructorArgs": {
+        "owner": "0x84D3a426D4E12E955d1DF95db0B24fe26afE39D3",
+        "urls": [
+          "https://dnssec-oracle.ens.domains/"
+        ]
+      }
+    },
+    "DNSTLDResolver": {
+      "address": "0x0c9f5e9ae61165140b49919f0df13c0a6642e80d",
+      "constructorArgs": {
+        "batchGatewayProvider": "0xE4e7245716d12D0F6AeA01DFe0E635C43D7D083c",
+        "contractNamer": "0x606f2453484f4Fa85b6E5FDB0E0bf777064bf9F3",
+        "dnsTLDResolverV1": "0x179Be112b24Ad4cFC392eF8924DfA08C20Ad8583",
+        "dnssecOracle": "0xe62E4b6cE018Ad6e916fcC24545e20a33b9d8653",
+        "ensRegistryV1": "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
+        "oracleGatewayProvider": "0xd542a53982FDd0c456F02c5a54734c06073fA915",
+        "rootRegistry": "0xB458D6a3a77919449d03e7A6903C26827c1eC43f"
+      }
+    },
+    "DNSTXTResolver": {
+      "address": "0x00263173b7de91594eb4140ad8dd3a723b8e4eb3",
+      "constructorArgs": {
+        "contractNamer": "0x606f2453484f4Fa85b6E5FDB0E0bf777064bf9F3"
+      }
+    },
+    "DefaultReverseRegistrarAdapter": {
+      "address": "0x36f97328e843e37520cbf530e9402791c2754066",
+      "constructorArgs": {
+        "contractNamer": "0x606f2453484f4Fa85b6E5FDB0E0bf777064bf9F3",
+        "defaultReverseRegistrar": "0x4F382928805ba0e23B30cFB75fC9E848e82DFD47",
+        "standaloneHCAFactory": "0x6Bad0176236e97b346B5Dd13BCc8325B931EE8ab"
+      }
+    },
+    "ENSURIRenderer": {
+      "address": "0x4d7f0349dffb8e7bed9ffba1b9e45f7ecbd4f0f8",
+      "constructorArgs": {
+        "afterRegistry": "/",
+        "afterToken": ".json",
+        "owner_": "0x84D3a426D4E12E955d1DF95db0B24fe26afE39D3",
+        "prefix": "https://metadata.ens.domains/sepolia/0x"
+      }
+    },
+    "ENSV1Resolver": {
+      "address": "0x322b7581ca210a69c6d0e0d7c88a7688d2789cb0",
+      "constructorArgs": {
+        "batchGatewayProvider": "0xE4e7245716d12D0F6AeA01DFe0E635C43D7D083c",
+        "contractNamer": "0x606f2453484f4Fa85b6E5FDB0E0bf777064bf9F3",
+        "registryV1": "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"
+      }
+    },
+    "ENSV2Resolver": {
+      "address": "0x1cf3989ed3e5ec3cb1d731fc3777323813b61acf",
+      "constructorArgs": {
+        "batchGatewayProvider": "0xE4e7245716d12D0F6AeA01DFe0E635C43D7D083c",
+        "contractNamer": "0x606f2453484f4Fa85b6E5FDB0E0bf777064bf9F3",
+        "ethResolver": "0x60C7C2A24b5e86C38639Fd1586917a8FEF66a56d",
+        "rootRegistry": "0xB458D6a3a77919449d03e7A6903C26827c1eC43f"
+      }
+    },
+    "ETHRegistrar": {
+      "address": "0xf633e7fc17e2bbe0d0965d18ec1821dcb754a3d3",
+      "constructorArgs": {
+        "beneficiary": "0x84D3a426D4E12E955d1DF95db0B24fe26afE39D3",
+        "ethRegistry": "0xD4eBcbBdF463C9c45784603Db0dDD499BC44A8B4",
+        "gracePeriod": 2419200,
+        "maxCommitmentAge": 86400,
+        "minCommitmentAge": 60,
+        "minRegisterDuration": 2419200,
+        "oracle": "0x8196665D4ca7488B6474a9EC8E7d2719FB42263A",
+        "owner_": "0x84D3a426D4E12E955d1DF95db0B24fe26afE39D3"
+      }
+    },
+    "ETHRegistry": {
+      "address": "0xd4ebcbbdf463c9c45784603db0ddd499bc44a8b4",
+      "constructorArgs": {
+        "labelStore": "0xed8246FF02203a4d4cb262bD78bEAA7408A57cAE",
+        "roleBitmap": "452312848583266388373324183574235730989896496894242753832103786389058879744",
+        "rootAccount": "0x84D3a426D4E12E955d1DF95db0B24fe26afE39D3"
+      }
+    },
+    "ETHRenewerV1": {
+      "address": "0xf2ece44980778966b8a0fccb3a9e339440f6e045",
+      "constructorArgs": {
+        "beneficiary": "0x84D3a426D4E12E955d1DF95db0B24fe26afE39D3",
+        "bonusPeriod": 5356801,
+        "ethRegistry": "0xD4eBcbBdF463C9c45784603Db0dDD499BC44A8B4",
+        "gracePeriod": 2419200,
+        "nameWrapper": "0x0635513f179D50A207757E05759CbD106d7dFcE8",
+        "oracle": "0x8196665D4ca7488B6474a9EC8E7d2719FB42263A",
+        "owner_": "0x84D3a426D4E12E955d1DF95db0B24fe26afE39D3",
+        "wrappedController": "0xFED6a969AaA60E4961FCD3EBF1A2e8913ac65B72"
+      }
+    },
+    "Graveyard": {
+      "address": "0xb58a90a39d13cce1d0e192b5da5c47640855b04d",
+      "constructorArgs": {
+        "contractNamer": "0x606f2453484f4Fa85b6E5FDB0E0bf777064bf9F3",
+        "nameWrapper": "0x0635513f179D50A207757E05759CbD106d7dFcE8"
+      }
+    },
+    "HCAOwnerAndSessionValidator": {
+      "address": "0x4bf641590ab18e31b9f8789a3417a2620f860466",
+      "constructorArgs": {
+        "defaultReverseRegistrarHcaAdapter": "0x36f97328e843e37520cbF530e9402791c2754066",
+        "ethRegistry": "0xD4eBcbBdF463C9c45784603Db0dDD499BC44A8B4",
+        "gasRefundPaymaster": "0x1d7df6Ddc7328Ac827EB4D7f171C60AFB7f9A599",
+        "intentExecutor": "0x00000000005aD9ce1f5035FD62CA96CEf16AdAAF",
+        "permittedResolverImpl": "0x115eb53F0c60696633855F90b138178Fb40b2b2C",
+        "reverseRegistrarHcaAdapter": "0x56Bce5E727FAa9D237341Bb5B9E8a03D5919779d",
+        "verifiableFactory": "0xDa70306C98E97eCe36F997a21368e53298572991"
+      }
+    },
+    "HCAUpgradeSet": {
+      "address": "0xcde956d6e2949bc25a4273f93e0db6f68a1a6f34",
+      "constructorArgs": {
+        "rootAccount": "0x84D3a426D4E12E955d1DF95db0B24fe26afE39D3"
+      }
+    },
+    "LabelStore": {
+      "address": "0xed8246ff02203a4d4cb262bd78beaa7408a57cae",
+      "constructorArgs": {
+        "contractNamer": "0x606f2453484f4Fa85b6E5FDB0E0bf777064bf9F3"
+      }
+    },
+    "LockedMigrationController": {
+      "address": "0x6029a063d69b09d23c52a754a90e4fe43adac3a8",
+      "constructorArgs": {
+        "contractNamer": "0x606f2453484f4Fa85b6E5FDB0E0bf777064bf9F3",
+        "ethRegistry": "0xD4eBcbBdF463C9c45784603Db0dDD499BC44A8B4",
+        "graveyard": "0xB58A90a39D13CcE1D0E192B5da5c47640855B04D",
+        "nameWrapper": "0x0635513f179D50A207757E05759CbD106d7dFcE8",
+        "publicResolver": "0xdC4a563d00F5c3012b699794eB9e13A561Be386F",
+        "publicResolverSet": "0x5B2bd5208dac31905106d8e5a4973Ae1Cd7414F2",
+        "verifiableFactory": "0xDa70306C98E97eCe36F997a21368e53298572991",
+        "wrapperRegistryImpl": "0xBe768b63E5fBBFBB0Ae97E9064E0002dF8001880"
+      }
+    },
+    "ManagedUniversalResolverProxy": {
+      "address": "0x6d80f2172cfdec5730fe683860c33d26fc42e6f1"
+    },
+    "MigrationHelper": {
+      "address": "0xa8f86ee5cdd28703bd876f3a8c10b1de70f36899",
+      "constructorArgs": {
+        "contractNamer": "0x606f2453484f4Fa85b6E5FDB0E0bf777064bf9F3",
+        "lockedController": "0x6029a063d69b09D23c52a754a90E4FE43aDac3A8",
+        "rootRegistry": "0xB458D6a3a77919449d03e7A6903C26827c1eC43f",
+        "standaloneHCAFactory": "0x6Bad0176236e97b346B5Dd13BCc8325B931EE8ab",
+        "unlockedController": "0x2a35B94DF22cc7354570be2284655E2CDC0e64A2"
+      }
+    },
+    "MockDAI": {
+      "address": "0xf6fac8a58a0be13b9197f27c41b73162fe32572b",
+      "constructorArgs": {
+        "decimals_": 18,
+        "symbol": "DAI"
+      }
+    },
+    "MockUSDC": {
+      "address": "0x240b0316df57887dbbe58b586508b19e633a14aa",
+      "constructorArgs": {
+        "decimals_": 6,
+        "symbol": "USDC"
+      }
+    },
+    "PermissionedResolverImpl": {
+      "address": "0x115eb53f0c60696633855f90b138178fb40b2b2c",
+      "constructorArgs": {
+        "namer": "0x84D3a426D4E12E955d1DF95db0B24fe26afE39D3"
+      }
+    },
+    "PublicResolverSet": {
+      "address": "0x5b2bd5208dac31905106d8e5a4973ae1cd7414f2",
+      "constructorArgs": {
+        "rootAccount": "0x84D3a426D4E12E955d1DF95db0B24fe26afE39D3"
+      }
+    },
+    "PublicResolverV2": {
+      "address": "0xdc4a563d00f5c3012b699794eb9e13a561be386f",
+      "constructorArgs": {
+        "contractNamer": "0x606f2453484f4Fa85b6E5FDB0E0bf777064bf9F3",
+        "nameWrapper": "0x0635513f179D50A207757E05759CbD106d7dFcE8",
+        "rootRegistry": "0xB458D6a3a77919449d03e7A6903C26827c1eC43f"
+      }
+    },
+    "RegistryUpgradeSet": {
+      "address": "0xf0a6f68c28603bdf2881ca17476ee477c72cd2fe",
+      "constructorArgs": {
+        "rootAccount": "0x84D3a426D4E12E955d1DF95db0B24fe26afE39D3"
+      }
+    },
+    "ReverseRegistrarAdapter": {
+      "address": "0x56bce5e727faa9d237341bb5b9e8a03d5919779d",
+      "constructorArgs": {
+        "contractNamer": "0x606f2453484f4Fa85b6E5FDB0E0bf777064bf9F3",
+        "reverseRegistrar": "0xA0a1AbcDAe1a2a4A2EF8e9113Ff0e02DD81DC0C6",
+        "standaloneHCAFactory": "0x6Bad0176236e97b346B5Dd13BCc8325B931EE8ab"
+      }
+    },
+    "RootBatchRegistrar": {
+      "address": "0x4cdedc6b514a6bc9b64854dfe2d6849d5b1369a6",
+      "constructorArgs": {
+        "ethRegistry_": "0xB458D6a3a77919449d03e7A6903C26827c1eC43f",
+        "owner_": "0x84D3a426D4E12E955d1DF95db0B24fe26afE39D3"
+      }
+    },
+    "RootRegistry": {
+      "address": "0xb458d6a3a77919449d03e7a6903c26827c1ec43f",
+      "constructorArgs": {
+        "labelStore": "0xed8246FF02203a4d4cb262bD78bEAA7408A57cAE",
+        "roleBitmap": "452312848583266388373324183574235730989896496894242753832103786389058945297",
+        "rootAccount": "0x84D3a426D4E12E955d1DF95db0B24fe26afE39D3"
+      }
+    },
+    "StandaloneHCAFactory": {
+      "address": "0x6bad0176236e97b346b5dd13bcc8325b931ee8ab",
+      "constructorArgs": {
+        "owner_": "0x84D3a426D4E12E955d1DF95db0B24fe26afE39D3",
+        "verifiableFactory": "0xDa70306C98E97eCe36F997a21368e53298572991"
+      }
+    },
+    "StandaloneHCAImplementation": {
+      "address": "0xc940e5c5bf263c0e097054aecf73826769a72cee",
+      "constructorArgs": {
+        "defaultValidator_": "0x4bF641590ab18E31B9F8789A3417A2620f860466",
+        "entryPoint_": "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
+        "intentExecutor_": "0x00000000005aD9ce1f5035FD62CA96CEf16AdAAF",
+        "ownerRegistry_": "0x6Bad0176236e97b346B5Dd13BCc8325B931EE8ab",
+        "predecessorUpgradeSet_": "0x0000000000000000000000000000000000000000",
+        "upgradeSet_": "0xCde956D6E2949Bc25a4273F93E0db6f68A1a6f34",
+        "validatorInitData_": "0x"
+      }
+    },
+    "StandardRentPriceOracle": {
+      "address": "0x8196665d4ca7488b6474a9ec8e7d2719fb42263a",
+      "constructorArgs": {
+        "baseRatePerCp": [
+          "0",
+          "0",
+          "20294267",
+          "5073567",
+          "253679"
+        ],
+        "discountDenominator": "100000000000000000000000000000000000000",
+        "discountPoints": [
+          {
+            "duration": 63072000,
+            "numer": "87500000000000000000000000000000000000"
+          },
+          {
+            "duration": 94608000,
+            "numer": "68750000000000000000000000000000000000"
+          },
+          {
+            "duration": 189216000,
+            "numer": "56250000000000000000000000000000000000"
+          }
+        ],
+        "paymentRatios": [
+          {
+            "denom": "1000000",
+            "numer": "1",
+            "paymentToken": "0x240b0316Df57887DBBE58b586508b19e633a14aa"
+          },
+          {
+            "denom": "1",
+            "numer": "1000000",
+            "paymentToken": "0xF6faC8A58a0BE13b9197f27C41B73162Fe32572b"
+          },
+          {
+            "denom": "1000000",
+            "numer": "1",
+            "paymentToken": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
+          }
+        ],
+        "premiumHalvingPeriod": 86400,
+        "premiumPeriod": 1814400,
+        "premiumPriceInitial": "100000000000000000000",
+        "rootAccount": "0x84D3a426D4E12E955d1DF95db0B24fe26afE39D3"
+      }
+    },
+    "UniversalHelper": {
+      "address": "0xd453e5bdb62cc3bea84341b1e306319c8ffd7dfe",
+      "constructorArgs": {
+        "contractNamer": "0x606f2453484f4Fa85b6E5FDB0E0bf777064bf9F3",
+        "rootRegistry": "0xB458D6a3a77919449d03e7A6903C26827c1eC43f"
+      }
+    },
+    "UniversalResolverV2": {
+      "address": "0x24e1d8e068620b647ca097f961a61055f4f42d72",
+      "constructorArgs": {
+        "batchGatewayProvider": "0xE4e7245716d12D0F6AeA01DFe0E635C43D7D083c",
+        "contractNamer": "0x606f2453484f4Fa85b6E5FDB0E0bf777064bf9F3",
+        "rootRegistry": "0xB458D6a3a77919449d03e7A6903C26827c1eC43f"
+      }
+    },
+    "UnlockedMigrationController": {
+      "address": "0x2a35b94df22cc7354570be2284655e2cdc0e64a2",
+      "constructorArgs": {
+        "contractNamer": "0x606f2453484f4Fa85b6E5FDB0E0bf777064bf9F3",
+        "ethRegistry": "0xD4eBcbBdF463C9c45784603Db0dDD499BC44A8B4",
+        "graveyard": "0xB58A90a39D13CcE1D0E192B5da5c47640855B04D",
+        "nameWrapper": "0x0635513f179D50A207757E05759CbD106d7dFcE8"
+      }
+    },
+    "UpgradableUniversalResolverProxy": {
+      "address": "0xeeeeeeee14d718c2b47d9923deab1335e144eeee"
+    },
+    "UserRegistryImpl": {
+      "address": "0x9bd8a88719068d09ecee662f36c0e3856708366a",
+      "constructorArgs": {
+        "labelStore": "0xed8246FF02203a4d4cb262bD78bEAA7408A57cAE",
+        "namer": "0x84D3a426D4E12E955d1DF95db0B24fe26afE39D3",
+        "uriRenderer": "0x0f5B101b6Fc626b9b210bB5E70f60F3dd9cA0d96"
+      }
+    },
+    "VerifiableFactory": {
+      "address": "0xda70306c98e97ece36f997a21368e53298572991"
+    },
+    "WrapperRegistryImpl": {
+      "address": "0xbe768b63e5fbbfbb0ae97e9064e0002df8001880",
+      "constructorArgs": {
+        "ensV1Resolver": "0x322B7581cA210a69c6D0e0D7c88a7688D2789Cb0",
+        "graveyard": "0xB58A90a39D13CcE1D0E192B5da5c47640855B04D",
+        "labelStore": "0xed8246FF02203a4d4cb262bD78bEAA7408A57cAE",
+        "nameWrapper": "0x0635513f179D50A207757E05759CbD106d7dFcE8",
+        "namer": "0x84D3a426D4E12E955d1DF95db0B24fe26afE39D3",
+        "publicResolver": "0xdC4a563d00F5c3012b699794eB9e13A561Be386F",
+        "publicResolverSet": "0x5B2bd5208dac31905106d8e5a4973Ae1Cd7414F2",
+        "upgradeSet": "0xF0a6f68c28603bDF2881Ca17476Ee477C72cD2fE",
+        "uriRenderer": "0x0f5B101b6Fc626b9b210bB5E70f60F3dd9cA0d96",
+        "verifiableFactory": "0xDa70306C98E97eCe36F997a21368e53298572991"
+      }
+    }
+  }
+}
