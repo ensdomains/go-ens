@@ -70,7 +70,7 @@ v2yet, err := c.IsENSv2(ctx)                          // has the canonical resol
 ```go
 v2c := v2.NewClient(c)
 
-open, err := v2c.RegistrationOpen(ctx) // false on mainnet until the ENS DAO enables the v2 registrar
+open, err := v2c.RegistrationOpen(ctx) // true on mainnet since the 2026-10-26 go-live; false on forks without phase 6
 
 // A resolver for the name, with its first records set during deployment.
 pr := v2c.PermissionedResolver(predicted) // predicted := Factory().PredictProxyAddress(ctx, opts.From, salt)
@@ -117,7 +117,7 @@ Mainnet and Sepolia tables are built in. For a fork or devnet pass a full config
 c, err := ens.NewClient(ctx, client, ens.WithChainConfig(cfg))
 ```
 
-To exercise `UniversalResolverV2` on mainnet before the ENS DAO repoints the canonical proxy:
+To bypass the canonical proxy and call `UniversalResolverV2` directly:
 
 ```go
 cfg := ens.MainnetConfig()

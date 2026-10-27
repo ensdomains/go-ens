@@ -43,7 +43,7 @@ import (
 )
 
 // ContractsV2Ref is the pinned ensdomains/contracts-v2 commit.
-const ContractsV2Ref = "fce23470d9d9cd7cad3da02bb4b447119fdf4c42"
+const ContractsV2Ref = "0f10caf50054f1af96197350aed6a4f072e4f205"
 
 // ENSContractsRef is the ensdomains/ens-contracts submodule commit pinned by
 // contracts-v2 at ContractsV2Ref; the v1 artifacts are taken from there.
@@ -61,13 +61,16 @@ type binding struct {
 	pkg  string // directory under contracts/v2 (or contracts/v1 when v1 is true)
 	file string // artifact file name without .json
 	v1   bool
+	// mainnetOnly skips the Sepolia compatibility check: the binding follows
+	// the mainnet artifact and Sepolia may lag it by a redeploy.
+	mainnetOnly bool
 }
 
 var bindings = []binding{
 	{pkg: "universalresolver", file: "UniversalResolverV2"},
 	{pkg: "universalhelper", file: "UniversalHelper"},
 	{pkg: "permissionedregistry", file: "UserRegistryImpl"},
-	{pkg: "wrapperregistry", file: "WrapperRegistryImpl"},
+	{pkg: "wrapperregistry", file: "WrapperRegistryImpl", mainnetOnly: true},
 	{pkg: "ethregistrar", file: "ETHRegistrar"},
 	{pkg: "ethrenewerv1", file: "ETHRenewerV1"},
 	{pkg: "rentpriceoracle", file: "StandardRentPriceOracle"},
@@ -286,7 +289,7 @@ func run(src *source, out string, withBytecode bool) error {
 		}
 		sum := sha256.Sum256(formatted)
 		m.ABIs["contracts/"+ver+"/"+b.pkg] = hex.EncodeToString(sum[:])
-		if !b.v1 {
+		if !b.v1 && !b.mainnetOnly {
 			// Sepolia may lag mainnet by a redeploy; its functions and events
 			// must still match (the bindings are shared), while custom errors
 			// may differ since newer builds only add them.

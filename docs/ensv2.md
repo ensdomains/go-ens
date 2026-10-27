@@ -16,13 +16,13 @@ Every registry is an ERC-1155 contract (`PermissionedRegistry`) with one token p
 
 **Roles.** There is no registrant/controller split. The token owner holds roles, one nybble each in a 256-bit bitmap, and delegates them with `GrantRoles`. Each role has an admin role (shifted left by 128 bits) that only the owner can hold. `v2.Roles` is the set type; the constants mirror `RegistryRolesLib`. The `.eth` registrar grants new owners `v2.RegistrationRoles` (set resolver, set subregistry, their admins, and the transfer admin), deliberately not `RoleRenew`: `.eth` names renew only through the registrar.
 
-**Transfers.** `safeTransferFrom` refuses unless the registry is emancipated (no root role can reach registered names), the sender holds the transfer admin role and nobody else holds roles on the name. `Registry.Transfer` runs those checks first and returns `*TransferUnsafeError` or `*TransferDisallowedError`; `UnsafeTransfer` skips the first and third.
+**Transfers.** `safeTransferFrom` refuses unless the registry is emancipated (no root role can reach registered names), the sender holds the transfer admin role and nobody else holds a role that reaches the name (`v2.UnemancipatedRoles`). The mainnet root and `.eth` registries predate that relaxation and cannot be replaced, so there any other role holder on the name, even one that can only renew, blocks safe transfers; `unsafeTransfer` still works. `Registry.Transfer` runs those checks first and returns `*TransferUnsafeError` or `*TransferDisallowedError`; `UnsafeTransfer` skips the first and third.
 
 ## Registration
 
 `ETHRegistrar` keeps commit and reveal. The commitment is `keccak256(abi.encode(label, owner, secret, subregistry, resolver, duration, referrer))`; `v2.Commitment.Hash` computes it locally and the live tests check it against the contract's pure `makeCommitment`. Registration is paid in ERC-20 through `safeTransferFrom`, so the payer must approve the registrar first. On mainnet the `StandardRentPriceOracle` accepts USDC and DAI; prices are quoted in USD × 1e12 and converted per token (`v2.Oracle`). A year of a five-plus character name is about 8 USD; three and four character names cost more; expired names carry a premium that starts at 100 million USD and halves daily for 21 days after the 28-day grace period.
 
-`v2.Registrar.Register` runs the pre-flight the contract would otherwise revert on: non-zero owner, minimum duration, commitment window, availability, allowance and balance. `Client.RegistrationOpen` reports whether the ENS DAO has granted the registrar its role on the `.eth` registry yet.
+`v2.Registrar.Register` runs the pre-flight the contract would otherwise revert on: non-zero owner, minimum duration, commitment window, availability, allowance and balance. `Client.RegistrationOpen` reports whether the registrar holds its role on the `.eth` registry; it has on mainnet since the 2026-10-26 go-live.
 
 ## Resolvers
 
@@ -37,13 +37,13 @@ Two read-only mirrors also appear: `ENSV1Resolver` (the resolver the v2 tree poi
 
 `UniversalResolverV2` keeps the `resolve(bytes,bytes)` and `reverse(bytes,uint256)` entry points of the v1 resolver, walks the v2 tree, enforces ENSIP-10 and follows CCIP-Read through a batch gateway. It does not normalise names; go-ens normalises (ENSIP-15) and DNS-encodes on the client. Labels over 255 bytes cannot be encoded for v2, so `DNSEncode` errors on them.
 
-The canonical proxy `0xeEeEEEeE14D718C2B47D9923Deab1335E144EeEe` is the DAO-designated entry point before and after the cutover. `Client.IsENSv2` reports whether it has been switched; `WithUniversalResolver(cfg.V2.UniversalResolverV2)` targets the v2 implementation directly.
+The canonical proxy `0xeEeEEEeE14D718C2B47D9923Deab1335E144EeEe` serves `UniversalResolverV2` on mainnet and Sepolia since the go-live. `Client.IsENSv2` reports it; `WithUniversalResolver(cfg.V2.UniversalResolverV2)` bypasses the proxy.
 
 ## Reverse resolution
 
 Primary names stay in the v1 reverse registrars (`addr.reverse`, and `default.reverse` for ENSIP-19 defaults); the v2 root registers `reverse` with `ENSV1Resolver` so lookups mirror into v1. The `reverse` call checks that the name resolves forward to the queried address and reverts `ReverseAddressMismatch` otherwise. `ens.EVMCoinType` maps a chain id to its ENSIP-19 coin type and `ReverseName` builds the reverse name.
 
-Writes: an externally owned account keeps using `v1.ReverseRegistrar.SetName`. Contracts use the v2 adapters (`v2.ReverseAdapters`), which the ENS DAO authorises as controllers of the v1 registrars; `SetPrimaryNameWithPermissionedResolver` claims the reverse node with a `PermissionedResolver` and stores the name there.
+Writes: an externally owned account keeps using `v1.ReverseRegistrar.SetName`. Contracts use the v2 adapters (`v2.ReverseAdapters`), authorised as controllers of the v1 registrars since the go-live; `SetPrimaryNameWithPermissionedResolver` claims the reverse node with a `PermissionedResolver` and stores the name there.
 
 ## Migration of v1 names
 

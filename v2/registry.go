@@ -532,15 +532,24 @@ func (r *Registry) SetApprovalForAll(opts *bind.TransactOpts, operator common.Ad
 
 // TransferCheck is the result of a pre-flight for a safe transfer.
 type TransferCheck struct {
-	TokenID        *big.Int
-	Owner          common.Address
-	Emancipated    bool // registry.isEmancipated()
-	OnlyAssignee   bool // nobody else holds roles on the name
-	CanTransfer    bool // owner holds ROLE_CAN_TRANSFER_ADMIN
-	SafeTransferOK bool // all of the above
+	TokenID     *big.Int
+	Owner       common.Address
+	Emancipated bool // registry.isEmancipated()
+	// OnlyAssignee is true when nobody else holds a role that reaches the
+	// name (UnemancipatedRoles), the rule registries deployed after
+	// 2026-10-26 apply.
+	OnlyAssignee bool
+	// OnlyAssigneeStrict is true when nobody else holds any role at all on
+	// the name, the rule the mainnet root and .eth registries keep: they
+	// predate the relaxation and cannot be replaced.
+	OnlyAssigneeStrict bool
+	CanTransfer        bool // owner holds ROLE_CAN_TRANSFER_ADMIN
+	SafeTransferOK     bool // Emancipated, OnlyAssignee and CanTransfer
 }
 
-// CheckTransfer runs the checks safeTransferFrom will apply.
+// CheckTransfer runs the checks safeTransferFrom will apply. It refuses only
+// on the relaxed rule; a registry that still applies the strict one reverts
+// with *TransferUnsafeError, which Transfer decodes.
 func (r *Registry) CheckTransfer(ctx context.Context, label string) (*TransferCheck, error) {
 	st, err := r.State(ctx, label)
 	if err != nil {
@@ -554,7 +563,10 @@ func (r *Registry) CheckTransfer(ctx context.Context, label string) (*TransferCh
 	if chk.Emancipated, err = r.IsEmancipated(ctx); err != nil {
 		return nil, err
 	}
-	if chk.OnlyAssignee, err = r.IsOnlyAssignee(ctx, label, AllRoles, owner); err != nil {
+	if chk.OnlyAssignee, err = r.IsOnlyAssignee(ctx, label, UnemancipatedRoles, owner); err != nil {
+		return nil, err
+	}
+	if chk.OnlyAssigneeStrict, err = r.IsOnlyAssignee(ctx, label, AllRoles, owner); err != nil {
 		return nil, err
 	}
 	roles, err := r.Roles(ctx, label, owner)
@@ -574,7 +586,11 @@ func (r *Registry) BuildTransfer(from, to common.Address, tokenID *big.Int, data
 
 // Transfer moves a name to another account with safeTransferFrom. It fetches
 // the current token id first and runs CheckTransfer, returning
-// *TransferDisallowedError or *TransferUnsafeError before spending gas.
+// *TransferDisallowedError or *TransferUnsafeError before spending gas. On
+// the mainnet root and .eth registries any other role holder on the name,
+// even one with only the renew role, still makes the contract refuse; that
+// revert decodes to *TransferUnsafeError too, and UnsafeTransfer is the way
+// around it.
 func (r *Registry) Transfer(ctx context.Context, opts *bind.TransactOpts, label string, to common.Address, data []byte) (*types.Transaction, error) {
 	chk, err := r.CheckTransfer(ctx, label)
 	if err != nil {

@@ -1,6 +1,6 @@
 {
   "chainId": 11155111,
-  "ref": "fce23470d9d9cd7cad3da02bb4b447119fdf4c42",
+  "ref": "0f10caf50054f1af96197350aed6a4f072e4f205",
   "contracts": {
     "BatchRegistrar": {
       "address": "0x4a4c8b7cdab6b19dc2cdb417cdb53a2ccbaf5322",

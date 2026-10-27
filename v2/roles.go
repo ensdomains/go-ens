@@ -229,6 +229,12 @@ var (
 	RegistrationRoles = NewRoles(RoleSetSubregistry, RoleSetSubregistry.Admin(), RoleSetResolver, RoleSetResolver.Admin(), RoleCanTransfer.Admin())
 	// ResolverAllRoles is AllRoles, named for readability at resolver call sites.
 	ResolverAllRoles Roles
+	// UnemancipatedRoles are the roles that can reach a registered name
+	// (RegistryRolesLib.UNEMANCIPATED_ROLE_BITMAP): unregister, set
+	// subregistry, set resolver with their admins, and the transfer admin.
+	// A registry is emancipated when nobody holds them at the root, and a
+	// safe transfer requires the sender to be their only holder on the name.
+	UnemancipatedRoles = NewRoles(RoleUnregister, RoleUnregister.Admin(), RoleSetSubregistry, RoleSetSubregistry.Admin(), RoleSetResolver, RoleSetResolver.Admin(), RoleCanTransfer.Admin())
 
 	invalidRoleMask uint256.Int
 )

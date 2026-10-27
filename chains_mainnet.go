@@ -13,7 +13,7 @@ import "github.com/ethereum/go-ethereum/common"
 // MainnetConfig returns the Ethereum mainnet configuration.
 //
 // v2 addresses come from contracts-v2 deployments/mainnet (pinned revision in
-// contracts/v2/manifest.json; several contracts were replaced on 2026-10-18) and are cross-checked by chains_test.go; v1
+// contracts/v2/manifest.json; several contracts were replaced on 2026-10-18 and 2026-10-26; v2 went live on 2026-10-26) and are cross-checked by chains_test.go; v1
 // addresses are the long-standing ENS v1 deployment.
 func MainnetConfig() ChainConfig {
 	usdc := common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")
@@ -46,8 +46,8 @@ func MainnetConfig() ChainConfig {
 			RentPriceOracle: common.HexToAddress("0x76f29609a363a8a1a2a6abe2e859c0f8916af469"),
 
 			VerifiableFactory:        common.HexToAddress("0x77510ba162dfea3d8989e3f0928a691b345730d2"),
-			UserRegistryImpl:         common.HexToAddress("0x75ff9adbcfce2469b097ac68f6ae650eae1351bb"),
-			WrapperRegistryImpl:      common.HexToAddress("0xcf3edb3f5501de63b57254d910b6782ee370039b"),
+			UserRegistryImpl:         common.HexToAddress("0xfaa23592aca10a6d8875b18ea86954e8eb6d8d72"),
+			WrapperRegistryImpl:      common.HexToAddress("0xe86a4ef4d7a210aaa1d6a9594fc7add7cd2cf888"),
 			PermissionedResolverImpl: common.HexToAddress("0x565b0f456a04ac9b48758190e90030623cff57c5"),
 			PublicResolverV2:         common.HexToAddress("0x66f9f566ff2f26309c1bd9134388478a801da3e1"),
 
@@ -60,8 +60,8 @@ func MainnetConfig() ChainConfig {
 			DefaultReverseRegistrarAdapter: common.HexToAddress("0xd86e32499ecafe9c181dd7410f93a1a9bb61ef0d"),
 
 			BatchRegistrar:              common.HexToAddress("0xf0ccfbf6dba1e01ccb833ced6d551a8f000e9721"),
-			MigrationHelper:             common.HexToAddress("0x0b92006fa187b4c98d0a7dfc9d3b918b6d243485"),
-			LockedMigrationController:   common.HexToAddress("0xc46bf3b6c7ebcffd4ecfc3b012a1726a2463694d"),
+			MigrationHelper:             common.HexToAddress("0x6c8452afc6043b5af32eb345a8135108906f07ee"),
+			LockedMigrationController:   common.HexToAddress("0x3cea18620883a69ed349b23328a3b6302598e51a"),
 			UnlockedMigrationController: common.HexToAddress("0xab821ca676cf2e0790fa273526a165cfa86aeb64"),
 			Graveyard:                   common.HexToAddress("0xda021a2c1c2f99574d861ef8c6fa745851beb7f6"),
 		},

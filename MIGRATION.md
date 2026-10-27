@@ -68,7 +68,7 @@ Options: `WithChainConfig` and `WithChainID` skip the probe, `WithUniversalResol
 
 ## 4. Behaviour changes to check
 
-- The resolver address returned by `Resolve` and `Reverse` is the contract the Universal Resolver called. After the v2 cutover that is a read-only mirror (`ENSV1Resolver`) for names still held in v1. Use `Client.WritableResolver` to find the contract that holds the records and its family (`node-keyed`, `permissioned`, `mirror`).
+- The resolver address returned by `Resolve` and `Reverse` is the contract the Universal Resolver called. Since the v2 cutover that is a read-only mirror (`ENSV1Resolver`) for names still held in v1. Use `Client.WritableResolver` to find the contract that holds the records and its family (`node-keyed`, `permissioned`, `mirror`).
 - `resolve("eth")` has no resolver on v2 (`ErrUnregistered`).
 - `PubKey`, DNS records and `zonehash` are not implemented by the v2 `PermissionedResolver`; reads surface `ErrUnsupportedProfile`.
 - v2 registration and renewal are paid in ERC-20 (USDC or DAI on mainnet), never ETH. `v2.Registrar.Register` refuses an `opts.Value`.
@@ -79,7 +79,7 @@ Options: `WithChainConfig` and `WithChainID` skip the probe, `WithUniversalResol
 ```go
 v2c := v2.NewClient(c)
 
-// Before the ENS DAO enables v2 registration this is false on mainnet.
+// True on mainnet since the 2026-10-26 go-live; false on forks that skipped phase 6.
 open, err := v2c.RegistrationOpen(ctx)
 
 // Deploy a resolver with initial records, then commit and register.

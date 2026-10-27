@@ -96,6 +96,17 @@
   {
     "inputs": [
       {
+        "internalType": "bytes",
+        "name": "dns",
+        "type": "bytes"
+      }
+    ],
+    "name": "DNSDecodingFailed",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint256",
         "name": "resource",
         "type": "uint256"
@@ -384,6 +395,11 @@
       }
     ],
     "name": "LabelExpired",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "LabelIsEmpty",
     "type": "error"
   },
   {
@@ -1667,16 +1683,6 @@
         "internalType": "contract IRegistry",
         "name": "parentRegistry",
         "type": "address"
-      },
-      {
-        "internalType": "string",
-        "name": "childLabel",
-        "type": "string"
-      },
-      {
-        "internalType": "uint256",
-        "name": "roleBitmap",
-        "type": "uint256"
       }
     ],
     "name": "initialize",
@@ -1737,7 +1743,7 @@
         "type": "bool"
       }
     ],
-    "stateMutability": "pure",
+    "stateMutability": "view",
     "type": "function"
   },
   {

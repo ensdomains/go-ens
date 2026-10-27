@@ -1,5 +1,5 @@
 {
-  "contractsV2Ref": "fce23470d9d9cd7cad3da02bb4b447119fdf4c42",
+  "contractsV2Ref": "0f10caf50054f1af96197350aed6a4f072e4f205",
   "ensContractsRef": "f0151aaf8a53b5b8f725a584fc194997c8226fbd",
   "abis": {
     "contracts/v1/defaultreverseregistrar": "6ffe2eeb620f7e3a200570255b8af0c37dad4ebea4c75607bcfbb7ff3c973a62",
@@ -17,6 +17,6 @@
     "contracts/v2/universalhelper": "6207110ac0dc88d84e5318a039c97701b830bf293f5805c50130054b17297b55",
     "contracts/v2/universalresolver": "28f5886b933b51820370407d91a1286eb19f2e25e7fde46593302a2ad0f92828",
     "contracts/v2/verifiablefactory": "c659e4540db251791688a5fa7dfccb79b2e01d3fe646ab2415052e9cdba3f446",
-    "contracts/v2/wrapperregistry": "3234f70030d41d3476c2aca668d51cdba55f6521f0d31b5efe6b75377a90eabf"
+    "contracts/v2/wrapperregistry": "480e5ac052dc3a7c4e57755874c6e2bc81613d9d9463455e507acd7738231153"
   }
 }
