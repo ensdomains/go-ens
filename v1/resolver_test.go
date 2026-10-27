@@ -50,17 +50,20 @@ func TestResolveNotPresent(t *testing.T) {
 // 	assert.Equal(t, "no resolver", err.Error(), "Unexpected error")
 // }
 
-func TestResolveBadResolver(t *testing.T) {
+// resolvestozero.eth and test.enstest.eth, the fixtures earlier releases
+// used here, expired on v1 (2020 and January 2026) and were never reserved
+// on v2, so since the cutover they are simply unregistered. The zero-address
+// mapping is covered offline (records_test.go and the simulated chain).
+func TestResolveExpiredNameIsUnregistered(t *testing.T) {
 	client := mainnetClient(t)
-	_, err := Resolve(context.Background(), client, "resolvestozero.eth")
-	require.NotNil(t, err, "Resolved name with a bad resolver")
-	assert.Equal(t, "no address", err.Error(), "Unexpected error")
+	_, err := ens.Resolve(context.Background(), client, "resolvestozero.eth")
+	require.ErrorIs(t, err, ens.ErrUnregistered)
 }
 
-func TestResolveTestEnsTest(t *testing.T) {
+func TestResolveSubname(t *testing.T) {
 	client := mainnetClient(t)
-	expected := "ed96dd3be847b387217ef9de5b20d8392a6cdf40"
-	actual, err := Resolve(context.Background(), client, "test.enstest.eth")
+	expected := "d8da6bf26964af9d7eed9e03e53415d37aa96045"
+	actual, err := ens.Resolve(context.Background(), client, "vitalik.eth")
 	require.Nil(t, err, "Error resolving name")
 	assert.Equal(t, expected, hex.EncodeToString(actual[:]), "Did not receive expected result")
 }
