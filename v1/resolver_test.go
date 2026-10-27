@@ -19,6 +19,8 @@ import (
 	"encoding/hex"
 	"testing"
 
+	ens "github.com/ensdomains/go-ens/v5"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
