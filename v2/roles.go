@@ -50,7 +50,7 @@ const (
 	RoleRenew            Role = 4  // extend a name's expiry
 	RoleSetSubregistry   Role = 5  // change a name's child registry
 	RoleSetResolver      Role = 6  // change a name's resolver
-	RoleCanTransfer      Role = 7  // only RoleCanTransfer.Admin() exists; auto-granted to the owner
+	RoleCanTransfer      Role = 7  // RoleCanTransfer.Admin() authorises transfers and is auto-granted to the owner; the base role marks a subregistry for transfer in registries deployed after 2026-11-11
 	RoleWasReserved      Role = 8  // marks a name registered from a reservation (migrated from v1)
 	RoleSetURI           Role = 9  // set the token URI
 	RoleCanName          Role = 30 // name the contract through the ContractNamer
@@ -235,6 +235,11 @@ var (
 	// A registry is emancipated when nobody holds them at the root, and a
 	// safe transfer requires the sender to be their only holder on the name.
 	UnemancipatedRoles = NewRoles(RoleUnregister, RoleUnregister.Admin(), RoleSetSubregistry, RoleSetSubregistry.Admin(), RoleSetResolver, RoleSetResolver.Admin(), RoleCanTransfer.Admin())
+	// RegenerationRoles are the roles whose grant or revocation regenerates
+	// a name's token id in registries deployed after 2026-11-11
+	// (RegistryRolesLib.REGENERATION_ROLE_BITMAP). The mainnet root and .eth
+	// registries predate this and regenerate on every role change.
+	RegenerationRoles = UnemancipatedRoles.With(RoleCanTransfer)
 
 	invalidRoleMask uint256.Int
 )

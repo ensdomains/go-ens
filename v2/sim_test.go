@@ -252,6 +252,30 @@ func TestSimulatedEndToEnd(t *testing.T) {
 	plan2, err := c.PlanCreateSubname(ctx, alice.Address, v2.SubnameParams{Name: "other.example.eth", Owner: chain.Bob.Address})
 	require.NoError(t, err)
 	require.Equal(t, []string{v2.StepRegister}, stepNames(plan2))
+	// A registry running a superseded implementation is detected and
+	// refused unless the caller opts in.
+	subImpl, err := subReg.Implementation(ctx)
+	require.NoError(t, err)
+	require.Equal(t, chain.Config.V2.UserRegistryImpl, subImpl)
+	ethImpl, err := ethReg.Implementation(ctx)
+	require.NoError(t, err)
+	require.Equal(t, common.Address{}, ethImpl)
+	affected, err := subReg.IsAffected(ctx)
+	require.NoError(t, err)
+	require.False(t, affected)
+	flaggedCfg := chain.Config
+	flaggedCfg.AffectedUserRegistryImpls = []common.Address{subImpl}
+	flaggedENS, err := ens.NewClient(ctx, chain.Client, ens.WithChainConfig(flaggedCfg))
+	require.NoError(t, err)
+	flagged := v2.NewClient(flaggedENS)
+	affected, err = flagged.Registry(subReg.Address()).IsAffected(ctx)
+	require.NoError(t, err)
+	require.True(t, affected)
+	_, err = flagged.PlanCreateSubname(ctx, alice.Address, v2.SubnameParams{Name: "other.example.eth", Owner: chain.Bob.Address})
+	require.ErrorIs(t, err, v2.ErrRegistryAffected)
+	plan3, err := flagged.PlanCreateSubname(ctx, alice.Address, v2.SubnameParams{Name: "other.example.eth", Owner: chain.Bob.Address, AllowAffectedRegistry: true})
+	require.NoError(t, err)
+	require.Equal(t, []string{v2.StepRegister}, stepNames(plan3))
 	// Bob owns the subname and can set its records on a resolver he
 	// controls; here he cannot write to Alice's resolver.
 	_, err = pr.SetText(chain.Bob.Opts(t), "sub.example.eth", "x", "y")

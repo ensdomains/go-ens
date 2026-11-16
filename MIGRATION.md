@@ -72,7 +72,8 @@ Options: `WithChainConfig` and `WithChainID` skip the probe, `WithUniversalResol
 - `resolve("eth")` has no resolver on v2 (`ErrUnregistered`).
 - `PubKey`, DNS records and `zonehash` are not implemented by the v2 `PermissionedResolver`; reads surface `ErrUnsupportedProfile`.
 - v2 registration and renewal are paid in ERC-20 (USDC or DAI on mainnet), never ETH. `v2.Registrar.Register` refuses an `opts.Value`.
-- Token ids regenerate on every role change. Key everything by label; fetch `Registry.TokenID` right before a transfer.
+- Token ids regenerate when roles change (on the mainnet root and `.eth` registries on every role change; on registries deployed after 2026-11-11 only for roles in `v2.RegenerationRoles`). Key everything by label; fetch `Registry.TokenID` right before a transfer.
+- User registries deployed before 2026-11-11 run a superseded implementation (`ChainConfig.AffectedUserRegistryImpls`). `PlanCreateSubname` returns `ErrRegistryAffected` for them; deploy a new registry and copy the names.
 
 ## 5. Migrating writes
 

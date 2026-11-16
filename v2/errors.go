@@ -50,6 +50,7 @@ var (
 	ErrRegistrationClosed       = errors.New("v2 registration is not enabled")
 	ErrMixedRenewers            = errors.New("labels route to different renewers")
 	ErrSubnameExists            = errors.New("subname already registered")
+	ErrRegistryAffected         = errors.New("registry runs a superseded implementation; copy its names into a new registry")
 	ErrCommitmentExpired        = errors.New("commitment expired")
 	ErrNoCommitment             = errors.New("no commitment found")
 	ErrValueNotAllowed          = errors.New("v2 registration is paid in ERC-20; do not send ETH")

@@ -87,6 +87,10 @@ type SubnameParams struct {
 	// Overwrite lets the plan update resolver and subregistry of an existing
 	// subname instead of failing with ErrSubnameExists.
 	Overwrite bool
+	// AllowAffectedRegistry lets the plan register into a parent registry
+	// that runs a superseded implementation instead of failing with
+	// ErrRegistryAffected.
+	AllowAffectedRegistry bool
 }
 
 // PlanCreateSubname inspects the chain and returns the transactions that
@@ -167,6 +171,15 @@ func (c *Client) PlanCreateSubname(ctx context.Context, from common.Address, p S
 		plan.Steps = append(plan.Steps, Step{Name: StepSetParent, Call: setParent})
 		parentReg = predicted
 	} else {
+		if !p.AllowAffectedRegistry {
+			affected, err := c.Registry(parentReg).IsAffected(ctx)
+			if err != nil {
+				return nil, err
+			}
+			if affected {
+				return nil, fmt.Errorf("registry %s of %q: %w", parentReg.Hex(), parent, ErrRegistryAffected)
+			}
+		}
 		curParent, curLabel, err := c.Registry(parentReg).Parent(ctx)
 		if err == nil && (curParent != regs[1] || curLabel != parentLabel) {
 			setParent, err := c.Registry(parentReg).BuildSetParent(regs[1], parentLabel)

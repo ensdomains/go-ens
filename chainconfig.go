@@ -103,6 +103,23 @@ type ChainConfig struct {
 	// address.
 	PaymentTokens       []PaymentToken
 	DefaultPaymentToken common.Address
+	// AffectedUserRegistryImpls lists earlier UserRegistry implementations
+	// that were superseded by a security fix. Registries running one of
+	// them cannot upgrade in place; their names should be copied into a
+	// registry deployed from V2.UserRegistryImpl. See the upstream
+	// contracts-v2 security advisories.
+	AffectedUserRegistryImpls []common.Address
+}
+
+// IsAffectedUserRegistryImpl reports whether impl is a superseded
+// UserRegistry implementation.
+func (c ChainConfig) IsAffectedUserRegistryImpl(impl common.Address) bool {
+	for _, a := range c.AffectedUserRegistryImpls {
+		if a == impl {
+			return true
+		}
+	}
+	return false
 }
 
 // ErrNotConfigured is returned when an operation needs a contract whose

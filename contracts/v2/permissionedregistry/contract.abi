@@ -7,13 +7,23 @@
         "type": "address"
       },
       {
-        "internalType": "contract IRegistryURIRenderer",
-        "name": "uriRenderer",
+        "internalType": "address",
+        "name": "namer",
         "type": "address"
       },
       {
-        "internalType": "address",
-        "name": "namer",
+        "internalType": "contract IAddressSet",
+        "name": "upgradeSet",
+        "type": "address"
+      },
+      {
+        "internalType": "address[]",
+        "name": "upgradeable",
+        "type": "address[]"
+      },
+      {
+        "internalType": "contract IRegistryURIRenderer",
+        "name": "uriRenderer",
         "type": "address"
       }
     ],
@@ -396,6 +406,17 @@
       }
     ],
     "name": "UUPSUnsupportedProxiableUUID",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "implementation",
+        "type": "address"
+      }
+    ],
+    "name": "UpgradeTargetNotApproved",
     "type": "error"
   },
   {
@@ -882,6 +903,19 @@
   },
   {
     "inputs": [],
+    "name": "UPGRADE_SET",
+    "outputs": [
+      {
+        "internalType": "contract IAddressSet",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "URI_RENDERER",
     "outputs": [
       {
@@ -945,7 +979,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "",
+        "name": "previousImplementation",
         "type": "address"
       }
     ],
@@ -953,11 +987,11 @@
     "outputs": [
       {
         "internalType": "bool",
-        "name": "allowed",
+        "name": "",
         "type": "bool"
       }
     ],
-    "stateMutability": "pure",
+    "stateMutability": "view",
     "type": "function"
   },
   {

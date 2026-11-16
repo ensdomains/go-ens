@@ -42,8 +42,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// ContractsV2Ref is the pinned ensdomains/contracts-v2 commit.
-const ContractsV2Ref = "0f10caf50054f1af96197350aed6a4f072e4f205"
+// ContractsV2Ref is the pinned ensdomains/contracts-v2 commit (branch
+// post-audit-2, which carries the current address documents and the ad-hoc
+// redeployments made after the mainnet go-live).
+const ContractsV2Ref = "5026725d2a927f84de3a3a34b5bfe6cb92ae7cbb"
 
 // ENSContractsRef is the ensdomains/ens-contracts submodule commit pinned by
 // contracts-v2 at ContractsV2Ref; the v1 artifacts are taken from there.
@@ -169,6 +171,7 @@ type source struct {
 	localV1 string
 	client  *http.Client
 	cache   map[string]*artifact
+	current map[string]map[string]common.Address // network -> contract -> documented address
 }
 
 func newSource(local, localV1 string) *source {
@@ -187,10 +190,13 @@ func (s *source) artifact(network, name string, v1 bool) (*artifact, error) {
 		raw, err = os.ReadFile(filepath.Join(s.localV1, name+".json"))
 	case v1:
 		raw, err = s.fetch(fmt.Sprintf(ensContractsRaw, ENSContractsRef, network, name))
-	case s.local != "":
-		raw, err = os.ReadFile(filepath.Join(s.local, network, name+".json"))
 	default:
-		raw, err = s.fetch(fmt.Sprintf(contractsV2Raw, ContractsV2Ref, network, name))
+		a, err := s.currentArtifact(network, name)
+		if err != nil {
+			return nil, err
+		}
+		s.cache[key] = a
+		return a, nil
 	}
 	if err != nil {
 		return nil, fmt.Errorf("%s/%s: %w", network, name, err)
@@ -201,6 +207,92 @@ func (s *source) artifact(network, name string, v1 bool) (*artifact, error) {
 	}
 	s.cache[key] = &a
 	return &a, nil
+}
+
+// namespaces returns the deployment directories that may hold the current
+// artifact of a contract on a network: ad-hoc redeployments first, then the
+// migration deployment.
+func namespaces(network string) []string { return []string{network + "-adhoc", network} }
+
+func (s *source) readDeployment(namespace, name string) ([]byte, error) {
+	if s.local != "" {
+		return os.ReadFile(filepath.Join(s.local, namespace, name+".json"))
+	}
+	return s.fetch(fmt.Sprintf(contractsV2Raw, ContractsV2Ref, namespace, name))
+}
+
+// currentArtifact loads the artifact whose address matches the network's
+// address document. Contracts the document does not list (mocks, proxy
+// halves) are taken from the first namespace that has them.
+func (s *source) currentArtifact(network, name string) (*artifact, error) {
+	documented, err := s.documented(network)
+	if err != nil {
+		return nil, err
+	}
+	want, listed := documented[name]
+	var lastErr error
+	for _, ns := range namespaces(network) {
+		raw, err := s.readDeployment(ns, name)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		var a artifact
+		if err := json.Unmarshal(raw, &a); err != nil {
+			return nil, fmt.Errorf("%s/%s: %w", ns, name, err)
+		}
+		if listed && a.Address != want {
+			lastErr = fmt.Errorf("%s/%s is %s, document says %s", ns, name, a.Address.Hex(), want.Hex())
+			continue
+		}
+		return &a, nil
+	}
+	return nil, fmt.Errorf("%s/%s: no artifact for the documented address: %w", network, name, lastErr)
+}
+
+// documented parses contracts/docs/addresses/<network>.md: the table of
+// current addresses above the changelog.
+func (s *source) documented(network string) (map[string]common.Address, error) {
+	if m, ok := s.current[network]; ok {
+		return m, nil
+	}
+	var raw []byte
+	var err error
+	if s.local != "" {
+		raw, err = os.ReadFile(filepath.Join(s.local, "..", "docs", "addresses", network+".md"))
+	} else {
+		raw, err = s.fetch(fmt.Sprintf("https://raw.githubusercontent.com/ensdomains/contracts-v2/%s/contracts/docs/addresses/%s.md", ContractsV2Ref, network))
+	}
+	if err != nil {
+		return nil, fmt.Errorf("address document for %s: %w", network, err)
+	}
+	doc := string(raw)
+	if i := strings.Index(doc, "## Changelog"); i >= 0 {
+		doc = doc[:i]
+	}
+	m := map[string]common.Address{}
+	for _, line := range strings.Split(doc, "\n") {
+		if !strings.HasPrefix(line, "| ") || strings.HasPrefix(line, "| Contract") || strings.HasPrefix(line, "| ---") {
+			continue
+		}
+		cells := strings.Split(line, "|")
+		if len(cells) < 3 {
+			continue
+		}
+		name := strings.TrimSpace(cells[1])
+		addr := strings.TrimSpace(cells[2])
+		if i := strings.Index(addr, "[0x"); i >= 0 && len(addr) >= i+43 {
+			m[name] = common.HexToAddress(addr[i+1 : i+43])
+		}
+	}
+	if len(m) == 0 {
+		return nil, fmt.Errorf("address document for %s lists no contracts", network)
+	}
+	if s.current == nil {
+		s.current = map[string]map[string]common.Address{}
+	}
+	s.current[network] = m
+	return m, nil
 }
 
 func (s *source) fetch(url string) ([]byte, error) {
@@ -219,41 +311,22 @@ func (s *source) fetch(url string) ([]byte, error) {
 // the simulated chain needs. They are skipped on networks that lack them.
 var extraArtifacts = []string{"ContractNamer_Implementation", "ContractNamer_Proxy", "MockUSDC", "MockDAI"}
 
-// listNetwork returns the artifact names in a network namespace: the table
-// in addresses.md (read locally or fetched) plus the extras above. Both
-// modes read the same table so their output is identical.
+// listNetwork returns the contracts of a network: those in its address
+// document plus the extras above.
 func (s *source) listNetwork(network string) ([]string, error) {
-	var raw []byte
-	var err error
-	if s.local != "" {
-		raw, err = os.ReadFile(filepath.Join(s.local, network, "addresses.md"))
-	} else {
-		raw, err = s.fetch(fmt.Sprintf("https://raw.githubusercontent.com/ensdomains/contracts-v2/%s/contracts/deployments/%s/addresses.md", ContractsV2Ref, network))
-	}
+	documented, err := s.documented(network)
 	if err != nil {
 		return nil, err
 	}
 	seen := map[string]bool{}
 	var names []string
-	add := func(n string) {
-		if !seen[n] {
-			seen[n] = true
-			names = append(names, n)
-		}
-	}
-	for _, line := range strings.Split(string(raw), "\n") {
-		if !strings.HasPrefix(line, "| ") || strings.HasPrefix(line, "| Contract") || strings.HasPrefix(line, "| ---") {
-			continue
-		}
-		cells := strings.Split(line, "|")
-		if len(cells) < 3 {
-			continue
-		}
-		add(strings.TrimSpace(cells[1]))
+	for n := range documented {
+		seen[n] = true
+		names = append(names, n)
 	}
 	for _, extra := range extraArtifacts {
-		if s.exists(network, extra) {
-			add(extra)
+		if !seen[extra] && s.exists(network, extra) {
+			names = append(names, extra)
 		}
 	}
 	sort.Strings(names)

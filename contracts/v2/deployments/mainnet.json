@@ -1,6 +1,6 @@
 {
   "chainId": 1,
-  "ref": "0f10caf50054f1af96197350aed6a4f072e4f205",
+  "ref": "5026725d2a927f84de3a3a34b5bfe6cb92ae7cbb",
   "contracts": {
     "BatchRegistrar": {
       "address": "0xf0ccfbf6dba1e01ccb833ced6d551a8f000e9721",
@@ -44,11 +44,11 @@
       }
     },
     "DNSTLDResolver": {
-      "address": "0xab48304a2520ce420e636aacd48a8bb3e7e485ee",
+      "address": "0x6695327ee70f41151d2cbadc3abbb6e4a58e739c",
       "constructorArgs": {
         "batchGatewayProvider": "0xd1E3FAc3837b85437530B8B5244E4deF43219C04",
         "contractNamer": "0x5cDaF63d4C2a01218149DDe707E5bc239c68730c",
-        "dnssecOracle": "0x0fc3152971714E5ed7723FAFa650F86A4BaF30C5",
+        "dnssecOracle": "0x668ad4467129d49ECbe6274d95197797C0E262AA",
         "ensRegistryV1": "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
         "oracleGatewayProvider": "0xA646BCEE466D77669A087f3379640CB03aCA7c3D",
         "rootRegistry": "0x2553c09bE6447BeFfdB86FA622ad41fB8f77A91e"
@@ -290,6 +290,16 @@
         "rootAccount": "0xFe89cc7aBB2C4183683ab71653C4cdc9B02D44b7"
       }
     },
+    "TemporaryDNSRegistrar": {
+      "address": "0x9d6d535f08be25a9a2fda1a1c21217d27d81cc61",
+      "constructorArgs": {
+        "owner_": "0xFe89cc7aBB2C4183683ab71653C4cdc9B02D44b7",
+        "publicSuffixList": "0x823BDa9cA8c47d072376eCD595530c8fb2fAa3ED",
+        "resolver": "0x6695327EE70F41151d2cBADC3ABBb6e4a58e739c",
+        "rootRegistry": "0x2553c09bE6447BeFfdB86FA622ad41fB8f77A91e",
+        "tokenOwner": "0x5B716D6587d241166bC8914858640F8684F3A2F3"
+      }
+    },
     "UniversalHelper": {
       "address": "0x46ae127d14683ac74ef151e46ae2117a1a25c676",
       "constructorArgs": {
@@ -326,10 +336,12 @@
       "address": "0xeeeeeeee14d718c2b47d9923deab1335e144eeee"
     },
     "UserRegistryImpl": {
-      "address": "0xfaa23592aca10a6d8875b18ea86954e8eb6d8d72",
+      "address": "0x86013382f943c6214e1433d1e64936f4000925cb",
       "constructorArgs": {
         "labelStore": "0x31e5E081fe38d15B3E8214ba5Cb08dC4708B70Ba",
-        "namer": "0xFe89cc7aBB2C4183683ab71653C4cdc9B02D44b7",
+        "namer": "0x5cDaF63d4C2a01218149DDe707E5bc239c68730c",
+        "upgradeSet": "0x573A73c0B3C0C90bB8BD728519434aF19Fb88935",
+        "upgradeable": [],
         "uriRenderer": "0x6f412Ff4144d525f791777d3384e9A1B170492Fb"
       }
     },

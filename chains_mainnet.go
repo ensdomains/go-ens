@@ -13,7 +13,9 @@ import "github.com/ethereum/go-ethereum/common"
 // MainnetConfig returns the Ethereum mainnet configuration.
 //
 // v2 addresses come from contracts-v2 deployments/mainnet (pinned revision in
-// contracts/v2/manifest.json; several contracts were replaced on 2026-10-18 and 2026-10-26; v2 went live on 2026-10-26) and are cross-checked by chains_test.go; v1
+// contracts/v2/manifest.json; several contracts were replaced on 2026-10-18 and 2026-10-26, v2 went live
+// on 2026-10-26, and UserRegistryImpl was replaced by a security fix on
+// 2026-11-11) and are cross-checked by chains_test.go; v1
 // addresses are the long-standing ENS v1 deployment.
 func MainnetConfig() ChainConfig {
 	usdc := common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")
@@ -46,14 +48,14 @@ func MainnetConfig() ChainConfig {
 			RentPriceOracle: common.HexToAddress("0x76f29609a363a8a1a2a6abe2e859c0f8916af469"),
 
 			VerifiableFactory:        common.HexToAddress("0x77510ba162dfea3d8989e3f0928a691b345730d2"),
-			UserRegistryImpl:         common.HexToAddress("0xfaa23592aca10a6d8875b18ea86954e8eb6d8d72"),
+			UserRegistryImpl:         common.HexToAddress("0x86013382f943c6214e1433d1e64936f4000925cb"),
 			WrapperRegistryImpl:      common.HexToAddress("0xe86a4ef4d7a210aaa1d6a9594fc7add7cd2cf888"),
 			PermissionedResolverImpl: common.HexToAddress("0x565b0f456a04ac9b48758190e90030623cff57c5"),
 			PublicResolverV2:         common.HexToAddress("0x66f9f566ff2f26309c1bd9134388478a801da3e1"),
 
 			ENSV1Resolver:  common.HexToAddress("0x394d8eb4a4fdf599384deab25f31d111d755c398"),
 			ENSV2Resolver:  common.HexToAddress("0x3071ad643ce4ed8b3d67b289845b45db82b068a4"),
-			DNSTLDResolver: common.HexToAddress("0xab48304a2520ce420e636aacd48a8bb3e7e485ee"),
+			DNSTLDResolver: common.HexToAddress("0x6695327ee70f41151d2cbadc3abbb6e4a58e739c"),
 			LabelStore:     common.HexToAddress("0x31e5e081fe38d15b3e8214ba5cb08dc4708b70ba"),
 
 			ReverseRegistrarAdapter:        common.HexToAddress("0x349151735790269a9c14668b58d7c83b5ecb9607"),
@@ -70,5 +72,12 @@ func MainnetConfig() ChainConfig {
 			{Symbol: "DAI", Address: common.HexToAddress("0x6B175474E89094C44Da98b954EedeAC495271d0F"), Decimals: 18},
 		},
 		DefaultPaymentToken: usdc,
+		AffectedUserRegistryImpls: []common.Address{
+			common.HexToAddress("0xfaa23592aca10a6d8875b18ea86954e8eb6d8d72"),
+			common.HexToAddress("0x75ff9adbcfce2469b097ac68f6ae650eae1351bb"),
+			common.HexToAddress("0xc927bcaa77cd7be283518760896be0cf3cfbe08d"),
+			common.HexToAddress("0x664814f5bd5e6e617742029fa781bbee6c230dc0"),
+			common.HexToAddress("0x43d937f91ec7597c096a1e2e6b7cbd2ddcaeb23d"),
+		},
 	}
 }

@@ -25,8 +25,12 @@ This is a breaking major version relative to [v4.0.0](https://github.com/ensdoma
 - `v1` package: `Client`, `NameWrapper` reads with a `Fuses` type, `DefaultReverseRegistrar`, `NewBaseRegistrarAt`.
 - Bindings generated with abigen `--v2` under `contracts/v2`, vendored from `ensdomains/contracts-v2` at a pinned revision by `internal/cmd/vendorabi`, with `make check-generated` in CI.
 - An in-process simulated chain (`internal/simchain`) that deploys the real v2 bytecode so the whole write path is tested offline by `go test -short`.
-- Live tests against mainnet and Sepolia, a nightly workflow and a cutover watch that records whether the canonical Universal Resolver serves v2. Mainnet went live on v2 on 2026-10-26; the tables track the 2026-10-18 and 2026-10-26 contract replacements.
+- Live tests against mainnet and Sepolia, a nightly workflow and a cutover watch that records whether the canonical Universal Resolver serves v2. Mainnet went live on v2 on 2026-10-26; the tables track the 2026-10-18, 2026-10-26 and later ad-hoc contract replacements (contracts-v2 `post-audit-2`).
 - `v2.UnemancipatedRoles`, the roles that reach a name; `Registry.CheckTransfer` applies the relaxed safe-transfer rule of registries deployed after 2026-10-26 and also reports the strict one the mainnet root and `.eth` registries keep.
+
+### Security
+
+- The baked-in `UserRegistryImpl` on mainnet and Sepolia is the implementation deployed on 2026-11-11 with upstream security fixes. `ChainConfig.AffectedUserRegistryImpls` lists the superseded implementations, `v2.Registry.Implementation` / `IsAffected` detect them, and `PlanCreateSubname` returns `ErrRegistryAffected` rather than register into such a registry. See the contracts-v2 security advisories.
 
 ### Changed
 

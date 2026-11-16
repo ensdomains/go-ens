@@ -48,7 +48,7 @@ func SepoliaConfig() ChainConfig {
 			RentPriceOracle: common.HexToAddress("0x8196665d4ca7488b6474a9ec8e7d2719fb42263a"),
 
 			VerifiableFactory:        common.HexToAddress("0xda70306c98e97ece36f997a21368e53298572991"),
-			UserRegistryImpl:         common.HexToAddress("0x9bd8a88719068d09ecee662f36c0e3856708366a"),
+			UserRegistryImpl:         common.HexToAddress("0x0822d199699f0a9d378617817a1439663234a126"),
 			WrapperRegistryImpl:      common.HexToAddress("0xbe768b63e5fbbfbb0ae97e9064e0002df8001880"),
 			PermissionedResolverImpl: common.HexToAddress("0x115eb53f0c60696633855f90b138178fb40b2b2c"),
 			PublicResolverV2:         common.HexToAddress("0xdc4a563d00f5c3012b699794eb9e13a561be386f"),
@@ -75,5 +75,8 @@ func SepoliaConfig() ChainConfig {
 			{Symbol: "CircleUSDC", Address: common.HexToAddress("0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"), Decimals: 6},
 		},
 		DefaultPaymentToken: usdc,
+		AffectedUserRegistryImpls: []common.Address{
+			common.HexToAddress("0x9bd8a88719068d09ecee662f36c0e3856708366a"),
+		},
 	}
 }

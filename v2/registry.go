@@ -324,6 +324,32 @@ func (r *Registry) IsOnlyAssignee(ctx context.Context, label string, roles Roles
 	return registryBinding.UnpackIsOnlyAssignee(out)
 }
 
+// Implementation returns the implementation behind this registry when it is
+// a proxy deployed by the VerifiableFactory, or the zero address when it is
+// not (the root and .eth registries, or a foreign contract).
+func (r *Registry) Implementation(ctx context.Context) (common.Address, error) {
+	impl, err := r.client.Factory().VerifyContract(ctx, r.addr)
+	if err != nil {
+		if errors.Is(err, ens.ErrNotConfigured) {
+			return common.Address{}, err
+		}
+		return common.Address{}, nil
+	}
+	return impl, nil
+}
+
+// IsAffected reports whether this registry runs a UserRegistry
+// implementation superseded by a security fix (see
+// ens.ChainConfig.AffectedUserRegistryImpls). Such a registry cannot be
+// upgraded in place; deploy a new one and copy the names across.
+func (r *Registry) IsAffected(ctx context.Context) (bool, error) {
+	impl, err := r.Implementation(ctx)
+	if err != nil {
+		return false, err
+	}
+	return r.client.cfg.IsAffectedUserRegistryImpl(impl), nil
+}
+
 // Writes.
 
 // RegisterParams are the inputs of IStandardRegistry.register: creating a

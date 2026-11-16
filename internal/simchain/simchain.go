@@ -268,7 +268,7 @@ func (c *Chain) deploy(t *testing.T) {
 	helperCtor := universalhelper.NewUniversalHelper().PackConstructor(root, c.ContractNamer)
 	helper := c.deployRaw(t, opts, "UniversalHelper", helperCtor)
 	factory := c.deployRaw(t, opts, "VerifiableFactory", nil)
-	userImplCtor := permissionedregistry.NewPermissionedRegistry().PackConstructor(labelStore, common.Address{}, c.ContractNamer)
+	userImplCtor := permissionedregistry.NewPermissionedRegistry().PackConstructor(labelStore, c.ContractNamer, common.Address{}, nil, common.Address{})
 	userImpl := c.deployRaw(t, opts, "UserRegistryImpl", userImplCtor)
 	resolverImplCtor := permissionedresolver.NewPermissionedResolver().PackConstructor(c.ContractNamer)
 	resolverImpl := c.deployRaw(t, opts, "PermissionedResolverImpl", resolverImplCtor)
