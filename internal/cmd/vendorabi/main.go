@@ -45,7 +45,7 @@ import (
 // ContractsV2Ref is the pinned ensdomains/contracts-v2 commit (branch
 // post-audit-2, which carries the current address documents and the ad-hoc
 // redeployments made after the mainnet go-live).
-const ContractsV2Ref = "5026725d2a927f84de3a3a34b5bfe6cb92ae7cbb"
+const ContractsV2Ref = "5026725d2a927f84de3a3a34b5bfe6cb92ae7cbb" // release v1.0.1
 
 // ENSContractsRef is the ensdomains/ens-contracts submodule commit pinned by
 // contracts-v2 at ContractsV2Ref; the v1 artifacts are taken from there.

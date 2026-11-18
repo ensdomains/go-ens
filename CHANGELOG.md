@@ -30,7 +30,7 @@ This is a breaking major version relative to [v4.0.0](https://github.com/ensdoma
 
 ### Security
 
-- The baked-in `UserRegistryImpl` on mainnet and Sepolia is the implementation deployed on 2026-11-11 with upstream security fixes. `ChainConfig.AffectedUserRegistryImpls` lists the superseded implementations, `v2.Registry.Implementation` / `IsAffected` detect them, and `PlanCreateSubname` returns `ErrRegistryAffected` rather than register into such a registry. See the contracts-v2 security advisories.
+- The baked-in `UserRegistryImpl` on mainnet and Sepolia is the implementation deployed on 2026-11-11 with upstream security fixes (contracts-v2 `v1.0.1`, advisories GHSA-67r7-3h9v-xpwx and GHSA-m38m-f6mf-qm3f). `ChainConfig.AffectedUserRegistryImpls` lists the superseded implementations, `v2.Registry.Implementation` / `IsAffected` detect them, and `PlanCreateSubname` returns `ErrRegistryAffected` rather than register into such a registry.
 
 ### Changed
 

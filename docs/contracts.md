@@ -5,7 +5,7 @@
 | Tree | Source | Generator |
 | --- | --- | --- |
 | `contracts/v1/*` | ENS v1 ABIs carried over from earlier releases, plus `namewrapper` and `defaultreverseregistrar` from `ensdomains/ens-contracts` at the submodule revision contracts-v2 pins | abigen v1 bindings (`-type Contract`) |
-| `contracts/v2/*` | `ensdomains/contracts-v2` deployment artifacts on branch `post-audit-2`: the current address of each contract is read from `contracts/docs/addresses/<network>.md` and its artifact from `contracts/deployments/<network>-adhoc` or `<network>`, whichever matches; pinned by commit in `contracts/v2/manifest.json` | abigen `--v2` bindings |
+| `contracts/v2/*` | `ensdomains/contracts-v2` deployment artifacts at release `v1.0.1` (branch `post-audit-2`): the current address of each contract is read from `contracts/docs/addresses/<network>.md` and its artifact from `contracts/deployments/<network>-adhoc` or `<network>`, whichever matches; pinned by commit in `contracts/v2/manifest.json` | abigen `--v2` bindings |
 | `contracts/v2/erc20` | hand-written minimal ERC-20 ABI (plus the mock tokens' `mint` and the OpenZeppelin v5 insufficiency errors) | abigen `--v2` |
 
 ABIs are vendored from the mainnet artifacts. Sepolia may lag a mainnet redeploy, so the vendoring tool only requires the two to agree on functions and events; custom errors may differ (newer builds add some).
