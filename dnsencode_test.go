@@ -9,14 +9,12 @@
 package ens_test
 
 import (
-	"encoding/hex"
 	"strings"
 	"testing"
 
-	ens "github.com/ensdomains/go-ens/v4"
+	ens "github.com/ensdomains/go-ens/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/sha3"
 )
 
 // ---------------------------------------------------------------------------
@@ -157,20 +155,14 @@ func TestDNSEncode_Label255Bytes(t *testing.T) {
 	assert.Equal(t, label, string(out[1:256]))
 }
 
-func TestDNSEncode_Label256Bytes_UsesLabelhash(t *testing.T) {
+func TestDNSEncode_Label256Bytes_Errors(t *testing.T) {
 	label := strings.Repeat("a", 256)
-	out, err := ens.DNSEncode(label + ".eth")
-	require.NoError(t, err)
-
-	h := sha3.NewLegacyKeccak256()
-	_, err = h.Write([]byte(label))
-	require.NoError(t, err)
-	encoded := "[" + hex.EncodeToString(h.Sum(nil)) + "]"
-	require.Len(t, encoded, 66)
-
-	expected := append([]byte{byte(len(encoded))}, encoded...)
-	expected = append(expected, 3, 'e', 't', 'h', 0)
-	assert.Equal(t, expected, out)
+	_, err := ens.DNSEncode(label + ".eth")
+	require.Error(t, err)
+	require.ErrorIs(t, err, ens.ErrLabelTooLong)
+	var typed *ens.LabelTooLongError
+	require.ErrorAs(t, err, &typed)
+	require.Equal(t, label, typed.Label)
 }
 
 // ---------------------------------------------------------------------------
@@ -178,7 +170,7 @@ func TestDNSEncode_Label256Bytes_UsesLabelhash(t *testing.T) {
 //
 // ENSIP-10 explicitly removes RFC 1035's 255-octet cap on the total encoded
 // name, so DNSEncode must accept arbitrarily long encodings as long as each
-// label is at most 255 bytes (or has been substituted with a labelhash).
+// label is at most 255 bytes .
 // ---------------------------------------------------------------------------
 
 // 255 octets total: 63 + 63 + 63 + 61 data bytes; +4 length bytes +1 null.

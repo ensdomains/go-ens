@@ -1,0 +1,46 @@
+name: nightly
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-sepolia:
+    name: live tests against Sepolia
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: go test -count=1 -run 'TestSepolia' -v ./...
+        env:
+          GO_ENS_TEST_SEPOLIA_RPC: ${{ secrets.GO_ENS_TEST_SEPOLIA_RPC }}
+          GO_ENS_TEST_SEPOLIA_KEY: ${{ secrets.GO_ENS_TEST_SEPOLIA_KEY }}
+
+  cutover-watch:
+    name: is the canonical Universal Resolver ENSv2 yet?
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: record cutover status
+        run: |
+          go test -count=1 -run 'TestLiveCutoverStatus|TestSepoliaCutoverStatus' -v ./... 2>&1 | tee cutover.log
+          {
+            echo '## Universal Resolver cutover status'
+            echo
+            echo '```'
+            grep -E 'isENSv2=' cutover.log || echo 'no status lines'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+        env:
+          GO_ENS_TEST_RPC: ${{ secrets.GO_ENS_TEST_RPC }}
+          GO_ENS_TEST_SEPOLIA_RPC: ${{ secrets.GO_ENS_TEST_SEPOLIA_RPC }}

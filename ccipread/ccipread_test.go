@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ensdomains/go-ens/v4/ccipread"
+	"github.com/ensdomains/go-ens/v5/ccipread"
 )
 
 // ---------------------------------------------------------------------------

@@ -22,3 +22,5 @@ TODO.md
 
 # IntelliJ + friends.
 .idea/
+# local test credentials
+.env

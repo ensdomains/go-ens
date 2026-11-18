@@ -1,0 +1,77 @@
+name: ci
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    name: unit (go ${{ matrix.go }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        go: ["1.25.x", "stable"]
+        include:
+          - os: macos-latest
+            go: "1.25.x"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: ${{ matrix.go }}
+      - run: go vet ./...
+      - run: go test -short -race -count=1 ./...
+      - name: go.mod is tidy
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+
+  generated:
+    name: vendored ABIs and bindings are current
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: make check-generated
+        env:
+          GOTOOLCHAIN: go1.25.0
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.12.2
+          args: --timeout=60m
+        env:
+          GOTOOLCHAIN: go1.25.0
+      - name: formatting
+        run: golangci-lint fmt --diff ./...
+        env:
+          GOTOOLCHAIN: go1.25.0
+
+  live-mainnet:
+    name: live reads against mainnet
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: go test -count=1 -run 'TestLive|TestResolve|TestReverseResolve|TestUniversalResolver|TestName' ./...
+        env:
+          GO_ENS_TEST_RPC: ${{ secrets.GO_ENS_TEST_RPC }}
