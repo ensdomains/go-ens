@@ -98,8 +98,13 @@ func TestNameReRegistration(t *testing.T) {
 
 func TestInvalidName(t *testing.T) {
 	client := mainnetClient(t)
-	_, err := NewName(client, "ab.eth")
-	require.Equal(t, err.Error(), "name is not valid according to the rules of the registrar (too short, invalid characters, etc.)")
+	// NewName no longer consults the controller; validity is a separate
+	// question answered by the controller itself.
+	name, err := NewName(client, "ab.eth")
+	require.NoError(t, err)
+	valid, err := name.controller.IsValid("ab.eth")
+	require.NoError(t, err)
+	require.False(t, valid)
 }
 
 func TestNameRegistration(t *testing.T) {

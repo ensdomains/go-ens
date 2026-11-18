@@ -31,17 +31,22 @@ const UniversalResolverContractAddress = "0xeEeEEEeE14D718C2B47D9923Deab1335E144
 // of unmigrated names, for primary-name writes (which stay on the v1 reverse
 // registrars under v2), and for the v1 package.
 type V1Contracts struct {
-	Registry                common.Address // ENSRegistry
-	BaseRegistrar           common.Address // .eth ERC-721 registrar
-	ETHRegistrarController  common.Address // v1 controller; disabled at migration phase 3
-	NameWrapper             common.Address
-	PublicResolver          common.Address
-	ReverseRegistrar        common.Address // addr.reverse
-	DefaultReverseRegistrar common.Address // default.reverse (ENSIP-19)
-	DefaultReverseResolver  common.Address
-	BulkRenewal             common.Address
-	DNSRegistrar            common.Address
-	DNSSECImpl              common.Address
+	Registry               common.Address // ENSRegistry
+	BaseRegistrar          common.Address // .eth ERC-721 registrar
+	ETHRegistrarController common.Address // wrapped v1 controller (the one ETHRenewerV1 syncs with); disabled at migration phase 3
+	// LegacyETHRegistrarController is the original v1 controller, whose
+	// makeCommitment(string,address,bytes32) and four-argument register are
+	// what v1.ETHController and v1.Name speak. The wrapped controller has a
+	// different ABI.
+	LegacyETHRegistrarController common.Address
+	NameWrapper                  common.Address
+	PublicResolver               common.Address
+	ReverseRegistrar             common.Address // addr.reverse
+	DefaultReverseRegistrar      common.Address // default.reverse (ENSIP-19)
+	DefaultReverseResolver       common.Address
+	BulkRenewal                  common.Address
+	DNSRegistrar                 common.Address
+	DNSSECImpl                   common.Address
 }
 
 // V2Contracts holds the ENS v2 deployment.

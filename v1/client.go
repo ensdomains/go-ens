@@ -51,13 +51,14 @@ func (c *Client) BaseRegistrar() (*BaseRegistrar, error) {
 	return newBaseRegistrarAt(c.ens.Backend(), "eth", c.cfg.V1.BaseRegistrar)
 }
 
-// Controller returns the v1 .eth registrar controller. Its registration and
-// renewal functions are disabled by the ENS DAO at migration phase 3.
+// Controller returns the legacy v1 .eth registrar controller, the one whose
+// ABI ETHController speaks. Its registration and renewal functions are
+// disabled by the ENS DAO at migration phase 3.
 func (c *Client) Controller() (*ETHController, error) {
-	if c.cfg.V1.ETHRegistrarController == (common.Address{}) {
+	if c.cfg.V1.LegacyETHRegistrarController == (common.Address{}) {
 		return nil, ens.ErrNotConfigured
 	}
-	return NewETHControllerAt(c.ens.Backend(), "eth", c.cfg.V1.ETHRegistrarController)
+	return NewETHControllerAt(c.ens.Backend(), "eth", c.cfg.V1.LegacyETHRegistrarController)
 }
 
 // ReverseRegistrar returns the addr.reverse registrar.
@@ -97,7 +98,35 @@ func (c *Client) PublicResolver(name string) (*Resolver, error) {
 //
 // Deprecated: see NewName.
 func (c *Client) Name(name string) (*Name, error) {
-	return NewName(c.ens.Backend(), name)
+	name, err := ens.NormaliseDomain(name)
+	if err != nil {
+		return nil, err
+	}
+	label, err := ens.DomainPart(name, 1)
+	if err != nil {
+		return nil, err
+	}
+	registry, err := c.Registry()
+	if err != nil {
+		return nil, err
+	}
+	registrar, err := c.BaseRegistrar()
+	if err != nil {
+		return nil, err
+	}
+	controller, err := c.Controller()
+	if err != nil {
+		return nil, err
+	}
+	return &Name{
+		backend:    c.ens.Backend(),
+		Name:       name,
+		Domain:     ens.Domain(name),
+		Label:      label,
+		registry:   registry,
+		registrar:  registrar,
+		controller: controller,
+	}, nil
 }
 
 // configFor returns the baked-in configuration for the backend's chain, if

@@ -32,6 +32,14 @@ func TestSimulatedEndToEnd(t *testing.T) {
 	c := v2.NewClient(chain.ENS)
 	alice := chain.Alice
 	opts := alice.Opts(t)
+
+	// A failed oracle lookup is not cached: the next call succeeds.
+	cancelled, cancel := context.WithCancel(ctx)
+	cancel()
+	_, err := c.Oracle(cancelled)
+	require.Error(t, err)
+	_, err = c.Oracle(ctx)
+	require.NoError(t, err)
 	wait := chain.WaitFunc(t)
 
 	ok, err := chain.ENS.IsENSv2(ctx)

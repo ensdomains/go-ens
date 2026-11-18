@@ -32,6 +32,7 @@ jobs:
         with:
           go-version-file: go.mod
       - name: record cutover status
+        shell: bash # -o pipefail, so a failing go test is not masked by tee
         run: |
           go test -count=1 -run 'TestLiveCutoverStatus|TestSepoliaCutoverStatus' -v ./... 2>&1 | tee cutover.log
           {

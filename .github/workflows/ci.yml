@@ -72,6 +72,8 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
-      - run: go test -count=1 -run 'TestLive|TestResolve|TestReverseResolve|TestUniversalResolver|TestName' ./...
+      # Every test that is not -short, so a live test cannot be missed by a
+      # name pattern. Sepolia tests need their own endpoint and run nightly.
+      - run: go test -count=1 -skip 'TestSepolia' ./...
         env:
           GO_ENS_TEST_RPC: ${{ secrets.GO_ENS_TEST_RPC }}

@@ -8,7 +8,9 @@ package ens
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/ensdomains/go-ens/v5/ccipread"
 	"github.com/ensdomains/go-ens/v5/contracts/v2/compositeresolver"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -109,13 +111,18 @@ func (c *Client) WritableResolver(ctx context.Context, name string) (*ResolverIn
 		}
 		cr := compositeresolver.NewCompositeResolver()
 		to := info.Resolver
-		out, err := c.backend.CallContract(ctx, ethereum.CallMsg{To: &to, Data: cr.PackGetResolver(dnsName)}, nil)
-		if err == nil {
-			if res, uerr := cr.UnpackGetResolver(out); uerr == nil {
-				info.Underlying = res.Arg0
-				info.Offchain = res.Arg1
-			}
+		// getResolver may answer through CCIP-Read (DNSTLDResolver does
+		// for DNSSEC names not imported on chain), so follow it.
+		out, err := ccipread.Call(ctx, c.backend, to, cr.PackGetResolver(dnsName), c.CCIPOptions())
+		if err != nil {
+			return nil, fmt.Errorf("unwrapping composite resolver %s: %w", to.Hex(), err)
 		}
+		res, err := cr.UnpackGetResolver(out)
+		if err != nil {
+			return nil, fmt.Errorf("unwrapping composite resolver %s: %w", to.Hex(), err)
+		}
+		info.Underlying = res.Arg0
+		info.Offchain = res.Arg1
 	}
 	info.Family = c.resolverFamily(ctx, info.Underlying, info.Composite)
 	info.Writable = info.Underlying != (common.Address{}) && info.Family != ResolverFamilyMirror

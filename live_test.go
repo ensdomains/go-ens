@@ -82,6 +82,13 @@ func TestLiveClientV2Direct(t *testing.T) {
 	require.Equal(t, ens.ResolverFamilyNodeKeyed, info.Family)
 	require.True(t, info.Writable)
 
+	// A DNS name: the TLD resolver answers getResolver through CCIP-Read,
+	// which discovery must follow rather than report the mirror itself.
+	dnsInfo, err := c.WritableResolver(ctx, "raffy.xyz")
+	require.NoError(t, err)
+	require.True(t, dnsInfo.Composite)
+	require.NotEqual(t, dnsInfo.Resolver, dnsInfo.Underlying)
+
 	res, err := c.Reverse(ctx, nickAddr.Bytes(), ens.CoinTypeETH)
 	require.NoError(t, err)
 	require.Equal(t, "nick.eth", res.Name)

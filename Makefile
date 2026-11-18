@@ -21,7 +21,7 @@ test:
 
 ## Live tests against mainnet (GO_ENS_TEST_RPC, public fallback).
 test-live:
-	go test -count=1 -run 'TestLive' ./...
+	go test -count=1 -skip 'TestSepolia' ./...
 
 ## Live tests against Sepolia, including the write path when
 ## GO_ENS_TEST_SEPOLIA_KEY is set.

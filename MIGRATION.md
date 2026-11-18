@@ -58,7 +58,7 @@ Options: `WithChainConfig` and `WithChainID` skip the probe, `WithUniversalResol
 | `Name`, `NewName` and methods | `v1.Name` (deprecated) | v2: `v2.Name`, `v2.Registrar`, `v2.Client.Renew`, `v2.Registry.GrantRoles`, `v2.Client.CreateSubname` |
 | `Registry`, `NewRegistry`, `NewRegistryAt`, `RegistryContractAddress`, `RegistryContractFromRegistrar`, `SetResolver`, `SetSubdomainOwner`, `CreateRegistrySession` | `v1.*` | v2: `v2.Registry` |
 | `BaseRegistrar`, `NewBaseRegistrar` and methods | `v1.*` (+ `NewBaseRegistrarAt`) | reads keep working for unmigrated names |
-| `ETHController`, `NewETHController`, `NewETHControllerAt` and methods | `v1.*` | controller address now comes from `ChainConfig`; v2: `v2.Registrar` |
+| `ETHController`, `NewETHController`, `NewETHControllerAt` and methods | `v1.*` | speaks the legacy controller ABI; address now comes from `ChainConfig.V1.LegacyETHRegistrarController`; v2: `v2.Registrar` |
 | `Resolver`, `NewResolver`, `NewResolverAt`, `PublicResolverAddress` and methods | `v1.*` | reads: `ens.Client`; writes for v2 names: `v2.PermissionedResolver` or `v2.PublicResolverV2` |
 | `ReverseRegistrar`, `NewReverseRegistrar`, `NewReverseRegistrarAt`, `SetName`, `DefaultResolverAddress` | `v1.*` | still the write path for primary names; new `v1.DefaultReverseRegistrar`, `v2.ReverseAdapters` |
 | `ReverseResolver`, `NewReverseResolver*`, `Name` | `v1.*` (deprecated) | use `ens.Client.ReverseResolve` |

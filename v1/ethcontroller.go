@@ -36,14 +36,17 @@ type ETHController struct {
 	domain       string
 }
 
-// NewETHController creates a controller for a given domain. On chains with
-// a baked-in configuration the controller address comes from
-// ens.ChainConfig; elsewhere it is discovered through the domain resolver's
-// interface-implementer record, which stops working once the v1 .eth
-// resolver is repointed at the v2 mirror.
+// NewETHController creates a controller for a given domain. ETHController
+// speaks the ABI of the original (legacy) v1 controller, so on chains with a
+// baked-in configuration the address is
+// ens.ChainConfig.V1.LegacyETHRegistrarController; elsewhere it is
+// discovered through the domain resolver's interface-implementer record,
+// which stops working once the v1 .eth resolver is repointed at the v2
+// mirror. On mainnet the legacy controller answers reads but can no longer
+// register or renew: the ENS DAO removed it from the BaseRegistrar.
 func NewETHController(backend bind.ContractBackend, domain string) (*ETHController, error) {
-	if cfg, ok := configFor(backend); ok && cfg.V1.ETHRegistrarController != (common.Address{}) {
-		return NewETHControllerAt(backend, domain, cfg.V1.ETHRegistrarController)
+	if cfg, ok := configFor(backend); ok && cfg.V1.LegacyETHRegistrarController != (common.Address{}) {
+		return NewETHControllerAt(backend, domain, cfg.V1.LegacyETHRegistrarController)
 	}
 	registry, err := NewRegistry(backend)
 	if err != nil {
@@ -60,7 +63,8 @@ func NewETHController(backend bind.ContractBackend, domain string) (*ETHControll
 	return NewETHControllerAt(backend, domain, controllerAddress)
 }
 
-// NewETHControllerAt creates a .eth controller at a given address.
+// NewETHControllerAt creates a .eth controller at a given address, which
+// must implement the legacy controller ABI.
 func NewETHControllerAt(backend bind.ContractBackend, domain string, address common.Address) (*ETHController, error) {
 	contract, err := ethcontroller.NewContract(address, backend)
 	if err != nil {

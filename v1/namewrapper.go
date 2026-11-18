@@ -117,13 +117,16 @@ func (w *NameWrapper) OwnerOf(ctx context.Context, name string) (common.Address,
 	return w.Contract.OwnerOf(&bind.CallOpts{Context: ctx}, id)
 }
 
-// IsWrapped reports whether a name is held by the NameWrapper.
+// IsWrapped reports whether a name is held by the NameWrapper. It asks the
+// contract, which also checks that the wrapper still has custody in the
+// registry or registrar: a wrapper token can outlive a subname its parent
+// has replaced.
 func (w *NameWrapper) IsWrapped(ctx context.Context, name string) (bool, error) {
-	owner, err := w.OwnerOf(ctx, name)
+	node, err := ens.NameHash(name)
 	if err != nil {
 		return false, err
 	}
-	return owner != (common.Address{}), nil
+	return w.Contract.IsWrapped0(&bind.CallOpts{Context: ctx}, node)
 }
 
 // Data returns the owner, fuses and expiry of a wrapped name, or nil when

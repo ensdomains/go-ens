@@ -31,9 +31,8 @@ type Client struct {
 	ens *ens.Client
 	cfg ens.ChainConfig
 
-	oracleOnce sync.Once
-	oracle     *Oracle
-	oracleErr  error
+	oracleMu sync.Mutex
+	oracle   *Oracle
 }
 
 // NewClient returns a v2 client sharing the backend and configuration of c.
@@ -66,17 +65,19 @@ func (c *Client) ETHRegistrar() *Registrar { return newRegistrar(c, c.cfg.V2.ETH
 func (c *Client) RenewerV1() *RenewerV1 { return newRenewerV1(c, c.cfg.V2.ETHRenewerV1) }
 
 // Oracle returns the rent price oracle the registrar currently uses. The
-// address is read from ETHRegistrar.rentPriceOracle() once and cached.
+// address is read from ETHRegistrar.rentPriceOracle() on first success and cached; a failed lookup is retried on the next call.
 func (c *Client) Oracle(ctx context.Context) (*Oracle, error) {
-	c.oracleOnce.Do(func() {
-		addr, err := c.ETHRegistrar().OracleAddress(ctx)
-		if err != nil {
-			c.oracleErr = err
-			return
-		}
-		c.oracle = newOracle(c, addr)
-	})
-	return c.oracle, c.oracleErr
+	c.oracleMu.Lock()
+	defer c.oracleMu.Unlock()
+	if c.oracle != nil {
+		return c.oracle, nil
+	}
+	addr, err := c.ETHRegistrar().OracleAddress(ctx)
+	if err != nil {
+		return nil, err // not cached: the next call retries
+	}
+	c.oracle = newOracle(c, addr)
+	return c.oracle, nil
 }
 
 // OracleAt binds a rent price oracle at an address.

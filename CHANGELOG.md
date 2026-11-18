@@ -32,6 +32,15 @@ This is a breaking major version relative to [v4.0.0](https://github.com/ensdoma
 
 - The baked-in `UserRegistryImpl` on mainnet and Sepolia is the implementation deployed on 2026-11-11 with upstream security fixes (contracts-v2 `v1.0.1`, advisories GHSA-67r7-3h9v-xpwx and GHSA-m38m-f6mf-qm3f). `ChainConfig.AffectedUserRegistryImpls` lists the superseded implementations, `v2.Registry.Implementation` / `IsAffected` detect them, and `PlanCreateSubname` returns `ErrRegistryAffected` rather than register into such a registry.
 
+### Fixed
+
+- `v1.ETHController`, `v1.NewName` and `v1.Client.Controller` bind the legacy v1 controller (`ChainConfig.V1.LegacyETHRegistrarController`), whose ABI they speak. In v5.0.0-rc.1 they bound the wrapped controller, which rejects the legacy `makeCommitment` and `register`.
+- `v1.Client.Name` uses the client's chain configuration instead of rediscovering contracts from the backend.
+- `v1.NameWrapper.IsWrapped` asks the contract, which also checks registry custody, instead of inferring it from the token owner.
+- `Client.WritableResolver` follows CCIP-Read when unwrapping a composite resolver and returns the error when unwrapping fails, instead of reporting the mirror as the underlying resolver.
+- `v2.Client.Oracle` no longer caches a failed lookup.
+- CI runs every non-short test against mainnet, and the nightly cutover job fails when its tests fail.
+
 ### Changed
 
 - **Module path:** `github.com/ensdomains/go-ens/v4` → `github.com/ensdomains/go-ens/v5`.
